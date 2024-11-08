@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Factura de Venta</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 1cm;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.2;
+        font-size: 9px;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        margin-bottom: 70px;
+      }
+      .header {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #3f83f8;
+        padding-bottom: 10px;
+        position: relative;
+      }
+      .logo {
+        width: 100px;
+        height: auto;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .factura-info {
+        text-align: right;
+        width: 100%;
+      }
+      .factura-info h1 {
+        font-size: 18px;
+        margin: 0;
+        color: #1e40af;
+      }
+      .factura-info p {
+        margin: 2px 0;
+        font-size: 10px;
+      }
+      .empresa-cliente {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0;
+      }
+      .empresa-info,
+      .cliente-info {
+        width: 45%;
+      }
+      .empresa-info {
+        text-align: left;
+      }
+      .cliente-info {
+        text-align: right;
+      }
+      .seccion-titulo {
+        font-size: 10px;
+        color: #1e40af;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        font-weight: bold;
+      }
+      .tabla-productos {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+      }
+      .tabla-productos th {
+        background-color: #f3f4f6;
+        padding: 6px;
+        text-align: left;
+        border-bottom: 2px solid #3f83f8;
+        font-size: 8px;
+        text-transform: uppercase;
+      }
+      .tabla-productos td {
+        padding: 6px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 8px;
+      }
+      .tabla-productos .descripcion {
+        width: 30%;
+      }
+      .tabla-productos .serie {
+        width: 20%;
+      }
+      .tabla-productos .estado {
+        width: 15%;
+      }
+      .tabla-productos .garantia {
+        width: 15%;
+      }
+      .tabla-productos .precio {
+        width: 15%;
+        text-align: right;
+      }
+      .estado-badge {
+        padding: 2px 4px;
+        border-radius: 8px;
+        font-size: 8px;
+        font-weight: 600;
+      }
+      .estado-nuevo {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+      .estado-usado {
+        background-color: #fef9c3;
+        color: #854d0e;
+      }
+      .estado-km0 {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+
+      .totales {
+        width: 200px;
+        margin-left: auto;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 10px;
+      }
+      .totales table {
+        width: 100%;
+        font-size: 9px;
+      }
+      .totales td {
+        padding: 2px;
+        text-align: right;
+      }
+      .totales .total-final {
+        font-weight: bold;
+        font-size: 11px;
+        border-top: 2px solid #3f83f8;
+        color: #1e40af;
+      }
+      .info-adicional {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #f9fafb;
+        border-radius: 5px;
+        font-size: 8px;
+      }
+      .info-adicional p {
+        margin: 2px 0;
+        color: #6b7280;
+      }
+      .footer {
+        position: fixed;
+        bottom: 10px;
+        left: 1cm;
+        right: 1cm;
+        padding-top: 10px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 7px;
+        color: #6b7280;
+        text-align: center;
+        line-height: 1.1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img src="{{ logo_base64 }}" alt="Logo" class="logo" />
+      <div class="factura-info">
+        <h1>FACTURA</h1>
+        <p>Nº: V-{{ venta.id }}/{{ venta.fecha|date:"Y" }}</p>
+        <p>Fecha: {{ fecha }}</p>
+      </div>
+    </div>
+
+    <div class="empresa-cliente">
+      <div class="empresa-info">
+        <div class="seccion-titulo">DATOS DE LA EMPRESA</div>
+        <p><strong>{{ empresa.nombre }}</strong></p>
+        <p>CIF: {{ empresa.cif }}</p>
+        <p>{{ empresa.direccion }}</p>
+        <p>{{ empresa.cp }} - {{ empresa.ciudad }}</p>
+      </div>
+
+      <div class="cliente-info">
+        <div class="seccion-titulo">DATOS DEL CLIENTE</div>
+        <p><strong>{{ cliente.nombre_completo }}</strong></p>
+        <p>DNI/NIF: {{ cliente.dni }}</p>
+        <p>{{ cliente.direccion }}</p>
+        <p>Tel: {{ cliente.telefono }}</p>
+      </div>
+    </div>
+
+    <table class="tabla-productos">
+      <thead>
+        <tr>
+          <th class="descripcion">DESCRIPCIÓN</th>
+          <th class="serie">Nº SERIE</th>
+          <th class="estado">ESTADO</th>
+          <th class="garantia">GARANTÍA</th>
+          <th class="precio">IMPORTE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for detalle in venta.detalles.all %}
+        <tr>
+          <td class="descripcion">
+            <strong>{{ detalle.marca }} {{ detalle.modelo }}</strong><br />
+            <span style="color: #6b7280"
+              >{{ detalle.get_tipo_dispositivo_display }}</span
+            >
+            {% if detalle.nota %}<br /><span style="color: #6b7280"
+              >{{ detalle.nota }}</span
+            >{% endif %}
+          </td>
+          <td class="serie">{{ detalle.numero_serie }}</td>
+          <td class="estado">
+            <span class="estado-badge estado-{{ detalle.estado }}">
+              {{ detalle.get_estado_display }}
+            </span>
+          </td>
+          <td class="garantia">
+            {% if detalle.estado == 'nuevo' %}
+                36 meses
+            {% elif detalle.estado == 'usado' %}
+                6 meses
+            {% else %}
+                12 meses
+            {% endif %}
+        </td>
+          <td class="precio">{{ detalle.precio }}€</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="totales">
+      <table>
+        <tr>
+          <td>Base Imponible:</td>
+          <td>{{ base_imponible|floatformat:2 }}€</td>
+        </tr>
+        <tr>
+          <td>IVA (21%):</td>
+          <td>{{ iva|floatformat:2 }}€</td>
+        </tr>
+        <tr class="total-final">
+          <td>TOTAL:</td>
+          <td>{{ total|floatformat:2 }}€</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="info-adicional">
+      <div class="seccion-titulo">INFORMACIÓN ADICIONAL</div>
+      <p>Forma de pago: Contado</p>
+      {% if venta.nota %}
+      <p>Notas: {{ venta.nota }}</p>
+      {% endif %}
+      <p>
+        GARANTÍA: Los dispositivos nuevos tienen una garantía de 36 meses, los
+        usados de 6 meses y los KM0 de 12 meses.
+      </p>
+      <p>
+        La venta se considera pagada en su totalidad en el momento de la emisión
+        de esta factura.
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>
+        {{ empresa.nombre }} - CIF: {{ empresa.cif }} - {{ empresa.direccion }},
+        {{ empresa.cp }} {{ empresa.ciudad }}
+      </p>
+      <p>
+        Este documento sirve como garantía según lo establecido en el Real
+        Decreto Legislativo 1/2007.
+      </p>
+      <p>
+        En cumplimiento de lo establecido en la LOPD 15/1999, le informamos que
+        sus datos personales serán tratados y quedarán incorporados a los
+        ficheros de {{ empresa.nombre }}.
+      </p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Contrato de Compraventa</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 1.5cm;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.4;
+        font-size: 11px;
+      }
+      .header {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #3f83f8;
+        padding-bottom: 10px;
+        position: relative;
+        min-height: 100px; /* Asegurar espacio para el logo */
+      }
+      .logo {
+        width: 80px; /* Reducir tamaño */
+        height: auto;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+      }
+      .orden-info {
+        text-align: right;
+        width: 100%;
+        margin-left: 100px; /* Dar espacio al logo */
+      }
+      .header-text {
+        text-align: center;
+        flex-grow: 1;
+        margin: 0 20px;
+      }
+      .header-text h1 {
+        margin-bottom: 5px;
+      }
+      .content {
+        margin: 20px 0;
+      }
+      .section {
+        margin-bottom: 15px;
+      }
+      .device-details {
+        margin: 15px 0;
+        padding-left: 20px;
+      }
+      h2 {
+        font-size: 13px;
+        margin-bottom: 10px;
+      }
+
+      /* Estilos optimizados para firmas */
+      .signatures-section {
+        display: flex;
+        flex-direction: row; /* Esto fuerza la disposición horizontal */
+        justify-content: space-between;
+        margin: 40px auto;
+        width: 100%;
+      }
+
+      .signature-block {
+        width: 45%; /* Cada bloque ocupa el 45% del ancho */
+        text-align: left;
+      }
+      .signature-block strong {
+        display: block;
+        margin-bottom: 25px;
+        font-size: 12px;
+      }
+      .signature-line {
+        width: 100%;
+        border-bottom: 1px solid #000;
+        position: relative;
+        margin: 30px 0 10px 0;
+      }
+      .signature-line::before {
+        content: "Firma aquí:";
+        position: absolute;
+        top: -20px;
+        left: 0;
+        font-size: 9px;
+        color: #666;
+      }
+      .signature-details {
+        margin-top: 10px;
+        font-size: 10px;
+        text-align: left;
+        padding-left: 5px;
+      }
+      .signature-details p {
+        margin: 3px 0;
+      }
+
+      /* Sección DNI */
+      .dni-section {
+        margin-top: 30px;
+        text-align: center;
+      }
+      .dni-title {
+        font-size: 12px;
+        margin-bottom: 15px;
+      }
+      .dni-image {
+        text-align: center;
+      }
+      .dni-image img {
+        max-width: 70%;
+        height: auto;
+        border: 1px solid #ddd;
+        padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center; margin-bottom: 20px">
+      <!-- Logo sin marco rojo, solo la imagen -->
+      <img
+        src="{{ logo_base64 }}"
+        alt="Logo"
+        style="
+          width: 150px;
+          height: auto;
+          display: block;
+          margin: 0 auto 20px auto;
+        "
+      />
+      <h1>CONTRATO DE COMPRAVENTA</h1>
+      <p>En {{ empresa.ciudad }}, a {{ fecha }}</p>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <h2>REUNIDOS</h2>
+        <p><strong>DE UNA PARTE, como LA PARTE VENDEDORA:</strong></p>
+        <p>
+          D./Dña. {{ compra.cliente.nombre_completo }}, mayor de edad, con
+          DNI/NIF {{ compra.cliente.dni }}, con domicilio en {{
+          compra.cliente.direccion }}.
+        </p>
+
+        <p><strong>DE OTRA PARTE, como LA PARTE COMPRADORA:</strong></p>
+        <p>
+          {{ empresa.nombre }}, con CIF {{ empresa.cif }}, con domicilio social
+          en {{ empresa.direccion }}, {{ empresa.ciudad }}, C.P. {{ empresa.cp
+          }}.
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>INTERVIENEN</h2>
+        <p>
+          Ambas partes intervienen en su propio nombre y derecho, reconociéndose
+          mutuamente la capacidad legal necesaria para la firma del presente
+          contrato de compraventa.
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>EXPONEN</h2>
+        <p>
+          Que ambas partes han convenido formalizar la compraventa del siguiente
+          dispositivo:
+        </p>
+        <div class="device-details">
+          <p>• Marca y modelo: {{ compra.marca }} {{ compra.modelo }}</p>
+          <p>• Número de serie: {{ compra.numero_serie }}</p>
+          <p>• Estado: {{ compra.get_estado_display }}</p>
+          <p>• Precio de venta: {{ compra.precio }}€ (IVA incluido)</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>ESTIPULACIONES</h2>
+        <p>
+          <strong>PRIMERA.-</strong> El vendedor vende al comprador el
+          dispositivo anteriormente descrito por el importe señalado, que será
+          abonado en el momento de la firma del presente contrato.
+        </p>
+
+        <p>
+          <strong>SEGUNDA.-</strong> El vendedor declara que no pesa sobre el
+          citado dispositivo ninguna carga o gravamen.
+        </p>
+
+        <p>
+          <strong>TERCERA.-</strong> El vendedor declara que el dispositivo es
+          de su propiedad y que tiene derecho a venderlo.
+        </p>
+
+        <p>
+          <strong>CUARTA.-</strong> El comprador declara conocer el estado
+          actual del dispositivo, por lo que exonera al vendedor de cualquier
+          responsabilidad por vicios o defectos ocultos.
+        </p>
+
+        <p>
+          <strong>QUINTA.-</strong> En este acto el vendedor hace entrega al
+          comprador del dispositivo objeto de este contrato.
+        </p>
+
+        <p>
+          <strong>SEXTA.-</strong> Para cualquier litigio que surja entre las
+          partes de la interpretación o cumplimiento del presente contrato,
+          éstas, con expresa renuncia al fuero que pudiera corresponderles, se
+          someterán a los Juzgados y Tribunales de {{ empresa.ciudad }}.
+        </p>
+      </div>
+
+      <!-- Reemplazar la sección de firmas por una tabla -->
+      <table style="width: 100%; margin-top: 40px; margin-bottom: 40px">
+        <tr>
+          <td style="width: 50%; text-align: center; padding-right: 20px">
+            <strong>EL VENDEDOR</strong>
+            <div
+              style="border-bottom: 1px solid black; margin: 50px 0 10px 0"
+            ></div>
+            <p>Nombre: {{ compra.cliente.nombre_completo }}</p>
+            <p>DNI: {{ compra.cliente.dni }}</p>
+          </td>
+          <td style="width: 50%; text-align: center; padding-left: 20px">
+            <strong>EL COMPRADOR</strong>
+            <div
+              style="border-bottom: 1px solid black; margin: 50px 0 10px 0"
+            ></div>
+            <p>Empresa: {{ empresa.nombre }}</p>
+            <p>CIF: {{ empresa.cif }}</p>
+          </td>
+        </tr>
+      </table>
+
+      <div class="dni-section">
+        <h3 class="dni-title">DOCUMENTO DE IDENTIDAD</h3>
+        <div class="dni-image">
+          <img src="{{ compra.imagen_dni.url }}" alt="DNI del vendedor" />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

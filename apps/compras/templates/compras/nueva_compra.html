@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nueva Compra{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Nueva Compra</h1>
+
+        <form method="POST" enctype="multipart/form-data" id="compraForm">
+            {% csrf_token %}
+
+            <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                <h2 class="text-lg font-medium mb-4">Datos del Cliente</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                        {{ form.nombre_completo }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">DNI</label>
+                        {{ form.dni }}
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                        {{ form.direccion }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                        {{ form.telefono }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h2 class="text-lg font-medium mb-4">Datos del Dispositivo</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Dispositivo</label>
+                        {{ form.tipo_dispositivo }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                        {{ form.marca }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Modelo</label>
+                        {{ form.modelo }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de Serie</label>
+                        {{ form.numero_serie }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        {{ form.estado }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
+                        {{ form.precio }}
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+                        {{ form.nota }}
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Imagen DNI</label>
+                        {{ form.imagen_dni }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4 mt-6">
+                <a href="{% url 'compras:historial_compras' %}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Registrar Compra
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div id="successModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black opacity-50"></div>
+    
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md relative z-50">
+            <div class="flex items-center justify-center p-6 border-b border-gray-200">
+                <div class="bg-green-100 rounded-full p-2 mr-4">
+                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">Compra Registrada con Éxito</h3>
+            </div>
+            
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">La compra se ha registrado correctamente. ¿Deseas generar el contrato de compraventa?</p>
+                
+                <div class="flex flex-col space-y-3">
+                    <button type="button" id="generateContractBtn" class="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Generar y Descargar Contrato
+                    </button>
+                    <button type="button" id="goToHistoryBtn" class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Ir al Historial
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('compraForm');
+        const successModal = document.getElementById('successModal');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevenir envío normal del formulario
+            
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Guardar ID de compra para el botón de contrato
+                    successModal.dataset.compraId = data.compra_id;
+                    // Mostrar modal
+                    successModal.classList.remove('hidden');
+                } else {
+                    // Mostrar errores si los hay
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(field => {
+                            const input = form.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                input.classList.add('border-red-500');
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'text-red-500 text-sm mt-1';
+                                errorDiv.textContent = data.errors[field].join(', ');
+                                input.parentNode.appendChild(errorDiv);
+                            }
+                        });
+                    }
+                    alert(data.message || 'Error al registrar la compra');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud');
+            });
+        });
+    
+        // Botón para generar contrato
+        const generateContractBtn = document.getElementById('generateContractBtn');
+        generateContractBtn.addEventListener('click', function() {
+            const compraId = successModal.dataset.compraId;
+            if (compraId) {
+                window.location.href = `/compras/contrato-pdf/${compraId}/`;
+            }
+        });
+    
+        // Cerrar modal al hacer clic fuera
+        const modalOverlay = successModal.querySelector('.bg-black');
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', function() {
+                successModal.classList.add('hidden');
+            });
+        }
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Compras{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-2xl font-bold text-gray-900">Historial de Compras</h1>
+                <p class="mt-2 text-sm text-gray-700">Listado completo de todas las compras realizadas.</p>
+            </div>
+        </div>
+
+        <div class="mt-6 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Fecha
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Cliente
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                DNI
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Dispositivo
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nº Serie
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Precio
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for compra in compras %}
+                        <tr class="hover:bg-gray-50 cursor-pointer transition-colors duration-150 ease-in-out" 
+                            data-compra-id="{{ compra.id }}" 
+                            ondblclick="toggleDetalles(this)">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ compra.fecha|date:"d/m/Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ compra.cliente.nombre_completo }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ compra.cliente.dni }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ compra.marca }} {{ compra.modelo }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ compra.numero_serie }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if compra.estado == 'nuevo' %}bg-green-100 text-green-800
+                                    {% elif compra.estado == 'usado' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    {{ compra.get_estado_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ compra.precio }}€
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <button onclick="editarCompra('{{ compra.id }}')" 
+                                        class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-edit mr-1"></i>Editar
+                                </button>
+                                <button onclick="eliminarCompra('{{ compra.id }}')"
+                                        class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-trash-alt mr-1"></i>Eliminar
+                                </button>
+                                <button onclick="imprimirContrato('{{ compra.id }}')"
+                                        class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-print mr-1"></i>Imprimir
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Fila de detalles expandible -->
+                        <tr class="detalles-row hidden" id="detalles-{{ compra.id }}">
+                            <td colspan="8" class="px-6 py-4 bg-gray-50">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Datos del Cliente</h4>
+                                        <p class="text-sm text-gray-600">Dirección: {{ compra.cliente.direccion }}</p>
+                                        <p class="text-sm text-gray-600">Teléfono: {{ compra.cliente.telefono }}</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Datos del Dispositivo</h4>
+                                        <p class="text-sm text-gray-600">Tipo: {{ compra.get_tipo_dispositivo_display }}</p>
+                                        <p class="text-sm text-gray-600">Notas: {{ compra.nota }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                No hay compras registradas
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar -->
+<div id="modal-eliminar" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full p-6">
+            <div class="sm:flex sm:items-start">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg font-medium text-gray-900">Eliminar Compra</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                            ¿Estás seguro de que deseas eliminar esta compra? Esta acción no se puede deshacer.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="button" 
+                        id="confirmar-eliminar" 
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Eliminar
+                </button>
+                <button type="button" 
+                        onclick="cerrarModalEliminar()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-editar" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        
+        <div class="relative bg-white rounded-lg w-full max-w-4xl p-6">
+            <!-- Encabezado del Modal -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-gray-900">Editar Compra #<span id="compra-id"></span></h2>
+                <button onclick="cerrarModalEditar()" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Formulario de Edición -->
+            <form id="formEditar" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Datos del Cliente -->
+                <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                    <h3 class="text-lg font-medium mb-4">Datos del Cliente</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                            <input type="text" name="nombre_completo" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">DNI</label>
+                            <input type="text" name="dni" class="form-input">
+                        </div>
+
+                        <div class="form-group md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                            <input type="text" name="direccion" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                            <input type="text" name="telefono" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos del Dispositivo -->
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-medium mb-4">Datos del Dispositivo</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Dispositivo</label>
+                            <select name="tipo_dispositivo" class="form-select">
+                                <option value="movil">Móvil</option>
+                                <option value="consola">Consola</option>
+                                <option value="ordenador">Ordenador</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                            <input type="text" name="marca" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Modelo</label>
+                            <input type="text" name="modelo" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Número de Serie</label>
+                            <input type="text" name="numero_serie" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="nuevo">Nuevo</option>
+                                <option value="usado">Usado</option>
+                                <option value="km0">KM0</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
+                            <input type="number" name="precio" step="0.01" class="form-input">
+                        </div>
+
+                        <div class="form-group md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+                            <textarea name="nota" class="form-textarea"></textarea>
+                        </div>
+
+                        <div class="form-group md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Imagen DNI</label>
+                            <!-- Previsualización de la imagen actual -->
+                            <div id="imagen-dni-actual" class="mb-2">
+                                <p class="text-sm text-gray-500">Imagen actual:</p>
+                                <img id="preview-dni" src="" alt="DNI actual" class="max-h-32 mt-1">
+                            </div>
+                            <input type="file" name="imagen_dni" class="form-input" accept="image/*">
+                            <p class="text-sm text-gray-500 mt-1">Deja vacío para mantener la imagen actual</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" onclick="cerrarModalEditar()" 
+                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let compraIdAEliminar = null;
+    let compraActual = null;
+
+    function toggleDetalles(fila) {
+        const compraId = fila.dataset.compraId;
+        const detallesFila = document.getElementById(`detalles-${compraId}`);
+        
+        // Cerrar todas las filas expandidas excepto la actual
+        document.querySelectorAll('.detalles-row').forEach(row => {
+            if (row.id !== `detalles-${compraId}`) {
+                row.classList.add('hidden');
+                row.previousElementSibling.classList.remove('bg-blue-50');
+            }
+        });
+        
+        // Toggle la fila actual
+        detallesFila.classList.toggle('hidden');
+        fila.classList.toggle('bg-blue-50');
+
+        // Si la fila se está mostrando, hacer scroll hasta ella
+        if (!detallesFila.classList.contains('hidden')) {
+            detallesFila.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    async function cargarCompra(id) {
+        try {
+            const response = await fetch(`{% url 'compras:obtener_compra' 999999 %}`.replace('999999', id));
+            const data = await response.json();
+            
+            if (data.success) {
+                // Guardar referencia de la compra actual
+                compraActual = id;
+                
+                // Actualizar el título del modal
+                document.getElementById('compra-id').textContent = id;
+                
+                // Rellenar datos del cliente
+                const cliente = data.data.cliente;
+                document.querySelector('[name="nombre_completo"]').value = cliente.nombre_completo;
+                document.querySelector('[name="dni"]').value = cliente.dni;
+                document.querySelector('[name="direccion"]').value = cliente.direccion;
+                document.querySelector('[name="telefono"]').value = cliente.telefono;
+                
+                // Rellenar datos del dispositivo
+                const dispositivo = data.data.dispositivo;
+                document.querySelector('[name="tipo_dispositivo"]').value = dispositivo.tipo;
+                document.querySelector('[name="marca"]').value = dispositivo.marca;
+                document.querySelector('[name="modelo"]').value = dispositivo.modelo;
+                document.querySelector('[name="numero_serie"]').value = dispositivo.numero_serie;
+                document.querySelector('[name="estado"]').value = dispositivo.estado;
+                document.querySelector('[name="precio"]').value = dispositivo.precio;
+                document.querySelector('[name="nota"]').value = dispositivo.nota;
+                
+                // Actualizar previsualización de imagen DNI
+                const previewDni = document.getElementById('preview-dni');
+                if (data.data.imagen_dni_url) {
+                    previewDni.src = data.data.imagen_dni_url;
+                    document.getElementById('imagen-dni-actual').classList.remove('hidden');
+                } else {
+                    document.getElementById('imagen-dni-actual').classList.add('hidden');
+                }
+                
+                // Mostrar modal
+                document.getElementById('modal-editar').classList.remove('hidden');
+            } else {
+                showMessage('Error al cargar los datos de la compra', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Error al cargar los datos de la compra', 'error');
+        }
+    }
+
+    function editarCompra(id) {
+        cargarCompra(id);
+    }
+
+    function eliminarCompra(id) {
+        compraIdAEliminar = id;
+        document.getElementById('modal-eliminar').classList.remove('hidden');
+    }
+
+    function cerrarModalEliminar() {
+        document.getElementById('modal-eliminar').classList.add('hidden');
+        compraIdAEliminar = null;
+    }
+
+    function cerrarModalEditar() {
+        document.getElementById('modal-editar').classList.add('hidden');
+        document.getElementById('formEditar').reset();
+        compraActual = null;
+    }
+
+    function imprimirContrato(id) {
+        window.location.href = `{% url 'compras:generar_contrato_pdf' 999999 %}`.replace('999999', id);
+    }
+
+    // Configurar el formulario de edición
+    document.getElementById('formEditar').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!compraActual) return;
+        
+        const formData = new FormData(this);
+        document.getElementById('global-loader').classList.remove('hidden');
+        
+        try {
+            const response = await fetch(`{% url 'compras:editar_compra' 999999 %}`.replace('999999', compraActual), {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Actualizar la fila en la tabla
+                const fila = document.querySelector(`tr[data-compra-id="${compraActual}"]`);
+                if (fila) {
+                    // Actualizar los datos visibles en la tabla
+                    fila.querySelector('td:nth-child(2)').textContent = data.data.cliente_nombre;
+                    fila.querySelector('td:nth-child(3)').textContent = data.data.cliente_dni;
+                    fila.querySelector('td:nth-child(4)').textContent = data.data.dispositivo;
+                    fila.querySelector('td:nth-child(5)').textContent = data.data.numero_serie;
+                    const estadoSpan = fila.querySelector('td:nth-child(6) span');
+                    estadoSpan.textContent = data.data.estado;
+                    fila.querySelector('td:nth-child(7)').textContent = data.data.precio + '€';
+                }
+                
+                showMessage('Compra actualizada correctamente', 'success');
+                cerrarModalEditar();
+            } else {
+                showMessage(data.message || 'Error al actualizar la compra', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Error al procesar la solicitud', 'error');
+        } finally {
+            document.getElementById('global-loader').classList.add('hidden');
+        }
+    });
+
+    // Configurar el botón de confirmar eliminación
+    document.getElementById('confirmar-eliminar').addEventListener('click', async function() {
+        if (!compraIdAEliminar) return;
+
+        // Mostrar loader
+        document.getElementById('global-loader').classList.remove('hidden');
+        
+        try {
+            const response = await fetch(`{% url 'compras:eliminar_compra' 999999 %}`.replace('999999', compraIdAEliminar), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Eliminar las filas de la tabla
+                const fila = document.querySelector(`tr[data-compra-id="${compraIdAEliminar}"]`);
+                const detallesFila = document.getElementById(`detalles-${compraIdAEliminar}`);
+                
+                if (fila && detallesFila) {
+                    fila.remove();
+                    detallesFila.remove();
+                }
+
+                showMessage('Compra eliminada correctamente', 'success');
+
+                // Si no quedan compras, mostrar mensaje
+                const tbody = document.querySelector('tbody');
+                if (tbody.children.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                No hay compras registradas
+                            </td>
+                        </tr>
+                    `;
+                }
+            } else {
+                throw new Error(data.error || 'Error al eliminar la compra');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage(error.message || 'Error al procesar la solicitud', 'error');
+        } finally {
+            // Ocultar loader y cerrar modal
+            document.getElementById('global-loader').classList.add('hidden');
+            cerrarModalEliminar();
+        }
+    });
+
+    // Event Listeners para modales
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalEliminar();
+            cerrarModalEditar();
+        }
+    });
+
+    // Cerrar modales al hacer clic fuera
+    document.querySelector('#modal-eliminar .bg-gray-500').addEventListener('click', cerrarModalEliminar);
+    document.querySelector('#modal-editar .bg-gray-500').addEventListener('click', cerrarModalEditar);
+
+    // Prevenir cierre accidental al hacer clic en el contenido del modal
+    document.querySelectorAll('#modal-editar .relative, #modal-eliminar .relative').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+
+    // Prevenir que el click en los botones propague al tr y active el toggle
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+</script>
+{% endblock %}

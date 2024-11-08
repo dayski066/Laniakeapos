@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>LANIAKEAPOS - {% block title %}{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Fuentes personalizadas -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="{% static 'assets/css/sidebar.css' %}">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: #f3f4f6;
+        }
+
+        #app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #sidebar {
+            width: 16rem;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background-color: #1f2937;
+            z-index: 50;
+        }
+
+        #main-content {
+            flex: 1;
+            margin-left: 16rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            
+        }
+
+        #navbar {
+            height: 4rem;
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        #content {
+            flex: 1;
+            padding: 1.5rem;
+            background-color: #f3f4f6;
+        }
+
+        /* Estilos para el loader */
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            {% include 'includes/sidebar.html' %}
+        </aside>
+
+        <!-- Main Content -->
+        <div id="main-content">
+            <!-- Navbar -->
+            <nav id="navbar">
+                {% include 'includes/navbar.html' %}
+            </nav>
+
+            <!-- Content -->
+            <main id="content">
+                <!-- Mensajes Flash -->
+                {% if messages %}
+                <div class="messages mb-4">
+                    {% for message in messages %}
+                    <div class="p-4 mb-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %} flex items-center justify-between">
+                        <div class="flex items-center">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle mr-2"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle mr-2"></i>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-current hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Contenido Principal -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Loader Global -->
+    <div id="global-loader" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-5 rounded-lg">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+        </div>
+    </div>
+
+    <!-- Scripts base -->
+    <script>
+        // Función para obtener el token CSRF
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
+
+        // Configurar jQuery para incluir el token CSRF en todas las peticiones AJAX
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+                }
+            }
+        });
+
+        // Gestión del loader global
+        $(document)
+            .ajaxStart(function() {
+                $('#global-loader').removeClass('hidden');
+            })
+            .ajaxStop(function() {
+                $('#global-loader').addClass('hidden');
+            });
+
+        // Función para mostrar mensajes temporales
+        function showMessage(message, type = 'info') {
+            const colors = {
+                success: 'bg-green-100 text-green-700',
+                error: 'bg-red-100 text-red-700',
+                info: 'bg-blue-100 text-blue-700'
+            };
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+
+            const html = `
+                <div class="p-4 mb-4 rounded-lg ${colors[type]} flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas ${icons[type]} mr-2"></i>
+                        ${message}
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-current hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            const messagesContainer = document.querySelector('.messages');
+            if (messagesContainer) {
+                messagesContainer.insertAdjacentHTML('beforeend', html);
+            } else {
+                const newContainer = document.createElement('div');
+                newContainer.className = 'messages mb-4';
+                newContainer.innerHTML = html;
+                document.querySelector('#content').insertAdjacentElement('afterbegin', newContainer);
+            }
+
+            // Auto-ocultar después de 5 segundos
+            setTimeout(() => {
+                const message = document.querySelector('.messages').lastElementChild;
+                if (message) {
+                    message.remove();
+                }
+            }, 5000);
+        }
+    </script>
+
+    <!-- Bloque para scripts adicionales -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

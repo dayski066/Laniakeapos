@@ -1,0 +1,299 @@
+{# templates/sat/orden_pdf.html #}
+<!DOCTYPE html>
+{% load sat_tags %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Orden de Reparación</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.2;
+            font-size: 9px;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            margin-bottom: 70px;
+        }
+        .header {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3f83f8;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        .logo {
+            width: 100px;
+            height: auto;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .orden-info {
+            text-align: right;
+            width: 100%;
+        }
+        .orden-info h1 {
+            font-size: 18px;
+            margin: 0;
+            color: #1e40af;
+        }
+        .orden-info p {
+            margin: 2px 0;
+            font-size: 10px;
+        }
+        .empresa-cliente {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        .empresa-info, .cliente-info {
+            width: 45%;
+        }
+        .empresa-info {
+            text-align: left;
+        }
+        .cliente-info {
+            text-align: right;
+        }
+        .seccion-titulo {
+            font-size: 10px;
+            color: #1e40af;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        .tabla-dispositivos {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        .tabla-dispositivos th {
+            background-color: #f3f4f6;
+            padding: 6px;
+            text-align: left;
+            border-bottom: 2px solid #3f83f8;
+            font-size: 8px;
+            text-transform: uppercase;
+        }
+        .tabla-dispositivos td {
+            padding: 6px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 8px;
+        }
+        .patron-container {
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        padding: 5px;
+        background: #fff;
+        }
+        .estado-badge {
+            padding: 2px 4px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 600;
+        }
+        .averia-info {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 5px;
+            font-size: 9px;
+        }
+        .averia-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 10px;
+            color: #1e40af;
+        }
+        .averia-info p {
+            margin: 3px 0;
+        }
+        .firma-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .firma {
+            width: 45%;
+            text-align: center;
+        }
+        .firma-linea {
+            margin-top: 20px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 1cm;
+            right: 1cm;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 7px;
+            color: #6b7280;
+            text-align: center;
+            line-height: 1.1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_base64 }}" alt="Logo" class="logo">
+        <div class="orden-info">
+            <h1>ORDEN DE REPARACIÓN</h1>
+            <p>Nº: R-{{ reparacion.id }}/{{ reparacion.fecha|date:"Y" }}</p>
+            <p>Fecha: {{ fecha }}</p>
+        </div>
+    </div>
+
+    <div class="empresa-cliente">
+        <div class="empresa-info">
+            <div class="seccion-titulo">DATOS DE LA EMPRESA</div>
+            <p><strong>{{ empresa.nombre }}</strong></p>
+            <p>CIF: {{ empresa.cif }}</p>
+            <p>{{ empresa.direccion }}</p>
+            <p>{{ empresa.cp }} - {{ empresa.ciudad }}</p>
+        </div>
+
+        <div class="cliente-info">
+            <div class="seccion-titulo">DATOS DEL CLIENTE</div>
+            <p><strong>{{ cliente.nombre_completo }}</strong></p>
+            <p>DNI/NIF: {{ cliente.dni }}</p>
+            <p>{{ cliente.direccion }}</p>
+            <p>Tel: {{ cliente.telefono }}</p>
+        </div>
+    </div>
+
+    <table class="tabla-dispositivos">
+        <thead>
+            <tr>
+                <th>DISPOSITIVO</th>
+                <th>Nº SERIE</th>
+                <th>TIPO DE BLOQUEO</th> <!-- Nueva columna para Tipo de Bloqueo -->
+                <th>BLOQUEO</th> <!-- Nueva columna para Bloqueo -->
+                <th>PRECIO</th> <!-- Asegúrate de que esta columna esté presente -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in reparacion.detalles.all %}
+            <tr>
+                <td>
+                    <strong>{{ detalle.marca }} {{ detalle.modelo }}</strong><br>
+                    <span style="color: #6b7280;">{{ detalle.get_tipo_dispositivo_display }}</span>
+                    {% if detalle.nota %}<br>
+                    <span style="color: #6b7280;">Nota: {{ detalle.nota }}</span>{% endif %}
+                </td>
+                <td>{{ detalle.numero_serie }}</td>
+                <td>
+                    <strong>{{ detalle.get_tipo_bloqueo_display }}</strong> <!-- Mostrar Tipo de Bloqueo -->
+                </td>
+                <td>
+                    {% if detalle.tipo_bloqueo == 'patron' %}
+                        <div class="patron-container" style="width: 60px; height: 60px; margin-top: 5px;">
+                            <!-- Aquí irá el dibujo del patrón -->
+                            {% with patron_numeros=detalle.bloqueo|split:'-' %}
+                                <svg width="60" height="60" viewBox="0 0 60 60">
+                                    <!-- Puntos base -->
+                                    {% for i in "012345678" %}
+                                        <circle cx="{{ forloop.counter0|mod:3|mul:20|add:10 }}" 
+                                                cy="{{ forloop.counter0|divisibleby:3|mul:20|add:10 }}" 
+                                                r="3" fill="#ccc"/>
+                                    {% endfor %}
+                                    
+                                    <!-- Líneas del patrón -->
+                                    {% if patron_numeros %}
+                                        <path d="M 
+                                        {% for num in patron_numeros %}
+                                            {% with x=num|mod:3|mul:20|add:10 y=num|divisibleby:3|mul:20|add:10 %}
+                                                {{ x }} {{ y }} 
+                                                {% if not forloop.last %}L {% endif %}
+                                            {% endwith %}
+                                        {% endfor %}"
+                                        stroke="#1e40af" 
+                                        stroke-width="2" 
+                                        fill="none"/>
+                                    {% endif %}
+                                </svg>
+                            {% endwith %}
+                        </div>
+                    {% elif detalle.tipo_bloqueo == 'pin' %}
+                        <span style="font-family: monospace;">PIN: {{ detalle.bloqueo }}</span>
+                    {% elif detalle.tipo_bloqueo == 'contraseña' %}
+                        <span style="font-family: monospace;">Contraseña: {{ detalle.bloqueo }}</span>
+                    {% else %}
+                        <span>No aplica</span> <!-- En caso de que no haya bloqueo -->
+                    {% endif %}
+                </td>
+                <td>{{ detalle.precio }}€</td> <!-- Asegúrate de que el precio se muestre aquí -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="averia-info">
+        <h3>DESCRIPCIÓN DE LA AVERÍA</h3>
+        <p>{{ reparacion.averia }}</p>
+        {% if reparacion.nota %}
+        <h3>NOTAS ADICIONALES</h3>
+        <p>{{ reparacion.nota }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Sección de patrón si existe -->
+    {% for detalle in reparacion.detalles.all %}
+    {% if detalle.tipo_bloqueo == 'patron' %}
+    <div style="margin: 10px 0; padding: 5px; border: 1px solid #e5e7eb; background: #f9fafb; page-break-inside: avoid;">
+        <h3 style="color: #1e40af; font-size: 10px; margin-bottom: 5px;">PATRÓN DE DESBLOQUEO - {{ detalle.marca }} {{ detalle.modelo }}</h3>
+        <div style="width: 100px; height: 100px; margin: 0 auto;">
+            {% with patron_numeros=detalle.bloqueo|split:'-' %}
+                <svg width="100" height="100" viewBox="0 0 100 100" style="display: block; margin: auto;">
+                    <!-- Puntos base -->
+                    {% for i in "012345678" %}
+                        <circle cx="{{ forloop.counter0|mod:3|mul:33|add:17 }}" 
+                                cy="{{ forloop.counter0|divisibleby:3|mul:33|add:17 }}" 
+                                r="5" fill="#ccc"/>
+                    {% endfor %}
+                    
+                    <!-- Líneas del patrón -->
+                    {% if patron_numeros %}
+                        <path d="M 
+                        {% for num in patron_numeros %}
+                            {% with x=num|mod:3|mul:33|add:17 y=num|divisibleby:3|mul:33|add:17 %}
+                                {{ x }} {{ y }} 
+                                {% if not forloop.last %}L {% endif %}
+                            {% endwith %}
+                        {% endfor %}"
+                        stroke="#1e40af" 
+                        stroke-width="3" 
+                        fill="none"/>
+                        
+                        <!-- Puntos seleccionados -->
+                        {% for num in patron_numeros %}
+                            {% with x=num|mod:3|mul:33|add:17 y=num|divisibleby:3|mul:33|add:17 %}
+                                <circle cx="{{ x }}" cy="{{ y }}" r="6" fill="#1e40af"/>
+                            {% endwith %}
+                        {% endfor %}
+                    {% endif %}
+                </svg>
+            {% endwith %}
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+    <div class="firma-section">
+        <div class="firma">
+            <div class="firma-linea">Firma del Cliente</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>{{ empresa.nombre }} - CIF: {{ empresa.cif }} - {{ empresa.direccion }}, {{ empresa.cp }} {{ empresa.ciudad }}</p>
+        <p>Este documento sirve como comprobante de entrega del dispositivo para su reparación.</p>
+        <p>La empresa no se hace responsable de la pérdida de datos durante la reparación.</p>
+    </div>
+</body>
+</html>

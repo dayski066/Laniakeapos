@@ -1,0 +1,268 @@
+{# templates/sat/historial_reparaciones.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Reparaciones{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-2xl font-bold text-gray-900">Historial de Reparaciones</h1>
+                <p class="mt-2 text-sm text-gray-700">Listado completo de todas las reparaciones realizadas.</p>
+            </div>
+        </div>
+
+        <div class="mt-6 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNI</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dispositivos</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for reparacion in reparaciones %}
+                        <tr class="hover:bg-gray-50 cursor-pointer transition-colors duration-150 ease-in-out" 
+                            data-reparacion-id="{{ reparacion.id }}" 
+                            ondblclick="toggleDetalles(this)">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ reparacion.fecha|date:"d/m/Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ reparacion.cliente.nombre_completo }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ reparacion.cliente.dni }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">
+                                    {% for detalle in reparacion.detalles.all %}
+                                    <div class="mb-1">
+                                        <span class="font-medium">{{ detalle.marca }} {{ detalle.modelo }}</span>
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if detalle.bloqueo == 'sin_bloqueo' %}bg-green-100 text-green-800
+                                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ detalle.get_bloqueo_display }}
+                                        </span>
+                                        <span class="text-gray-500 ml-2">{{ detalle.precio }}€</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ reparacion.total }}€
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <button onclick="editarReparacion('{{ reparacion.id }}')" 
+                                        class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-edit mr-1"></i>Editar
+                                </button>
+                                <button onclick="eliminarReparacion('{{ reparacion.id }}')"
+                                        class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-trash-alt mr-1"></i>Eliminar
+                                </button>
+                                <button onclick="imprimirOrden('{{ reparacion.id }}')"
+                                        class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-file-alt mr-1"></i>Orden
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Fila de detalles expandible -->
+                        <tr class="detalles-row hidden" id="detalles-{{ reparacion.id }}">
+                            <td colspan="7" class="px-6 py-4 bg-gray-50">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Datos del Cliente</h4>
+                                        <p class="text-sm text-gray-600">Dirección: {{ reparacion.cliente.direccion }}</p>
+                                        <p class="text-sm text-gray-600">Teléfono: {{ reparacion.cliente.telefono }}</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Detalles de la Reparación</h4>
+                                        {% for detalle in reparacion.detalles.all %}
+                                        <div class="mb-2">
+                                            <strong>{{ detalle.marca }} {{ detalle.modelo }}</strong>
+                                            <span class="text-gray-600"> - Serie: {{ detalle.numero_serie }}</span>
+                                            <br>
+                                            <strong>Tipo de Bloqueo:</strong> {{ detalle.get_tipo_bloqueo_display }}
+                                            <br>
+                                            <strong>Bloqueo:</strong> {{ detalle.bloqueo }}
+                                            <br>
+                                            <strong>Avería:</strong> {{ detalle.averia }}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                No hay reparaciones registradas
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar -->
+<div id="modal-eliminar" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full p-6">
+            <div class="sm:flex sm:items-start">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg font-medium text-gray-900">Eliminar Reparación</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                            ¿Estás seguro de que deseas eliminar esta reparación? Esta acción no se puede deshacer.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="button" 
+                        id="confirmar-eliminar" 
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Eliminar
+                </button>
+                <button type="button" 
+                        onclick="cerrarModalEliminar()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let reparacionIdAEliminar = null;
+
+function toggleDetalles(fila) {
+    const reparacionId = fila.dataset.reparacionId;
+    const detallesFila = document.getElementById(`detalles-${reparacionId}`);
+    
+    // Cerrar todas las filas expandidas excepto la actual
+    document.querySelectorAll('.detalles-row').forEach(row => {
+        if (row.id !== `detalles-${reparacionId}`) {
+            row.classList.add('hidden');
+            row.previousElementSibling.classList.remove('bg-blue-50');
+        }
+    });
+    
+    // Toggle la fila actual
+    detallesFila.classList.toggle('hidden');
+    fila.classList.toggle('bg-blue-50');
+
+    // Si la fila se está mostrando, hacer scroll hasta ella
+    if (!detallesFila.classList.contains('hidden')) {
+        detallesFila.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function editarReparacion(id) {
+    window.location.href = `{% url 'sat:editar_reparacion' 999999 %}`.replace('999999', id);
+}
+
+function eliminarReparacion(id) {
+    reparacionIdAEliminar = id;
+    document.getElementById('modal-eliminar').classList.remove('hidden');
+}
+
+function cerrarModalEliminar() {
+    document.getElementById('modal-eliminar').classList.add('hidden');
+    reparacionIdAEliminar = null;
+}
+
+function imprimirOrden(id) {
+    window.location.href = `{% url 'sat:generar_orden_pdf' 999999 %}`.replace('999999', id);
+}
+
+// Configurar el botón de confirmar eliminación
+document.getElementById('confirmar-eliminar').addEventListener('click', async function() {
+    if (!reparacionIdAEliminar) return;
+    
+    // Mostrar loader
+    document.getElementById('global-loader').classList.remove('hidden');
+    
+    try {
+        const response = await fetch(`{% url 'sat:eliminar_reparacion' 999999 %}`.replace('999999', reparacionIdAEliminar), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Eliminar las filas de la tabla
+            const fila = document.querySelector(`tr[data-reparacion-id="${reparacionIdAEliminar}"]`);
+            const detallesFila = document.getElementById(`detalles-${reparacionIdAEliminar}`);
+            
+            if (fila && detallesFila) {
+                fila.remove();
+                detallesFila.remove();
+            }
+
+            showMessage('Reparación eliminada correctamente', 'success');
+
+            // Si no quedan reparaciones, mostrar mensaje
+            const tbody = document.querySelector('tbody');
+            if (tbody.children.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            No hay reparaciones registradas
+                        </td>
+                    </tr>
+                `;
+            }
+        } else {
+            throw new Error(data.error || 'Error al eliminar la reparación');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showMessage(error.message || 'Error al procesar la solicitud', 'error');
+    } finally {
+        document.getElementById('global-loader').classList.add('hidden');
+        cerrarModalEliminar();
+    }
+});
+
+// Event Listeners para modales
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        cerrarModalEliminar();
+    }
+});
+
+// Prevenir que el click en los botones propague al tr y active el toggle
+document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,456 @@
+{# apps/ventas/templates/ventas/editar_venta.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Venta{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Editar Venta</h1>
+
+        <form method="POST" id="ventaForm">
+            {% csrf_token %}
+
+            <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                <h2 class="text-lg font-medium mb-4">Datos del Cliente</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
+                        {{ form.nombre_completo }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">DNI</label>
+                        {{ form.dni }}
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                        {{ form.direccion }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                        {{ form.telefono }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium">Dispositivos</h2>
+                    <button type="button" 
+                            onclick="mostrarFormularioDispositivo()"
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-plus mr-2"></i>Añadir Dispositivo
+                    </button>
+                </div>
+
+                <div id="lista-dispositivos" class="mb-4">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dispositivo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serie</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dispositivos-tbody" class="bg-white divide-y divide-gray-200">
+                            <!-- Los dispositivos se cargarán dinámicamente -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-right font-medium">Total:</td>
+                                <td class="px-6 py-4 text-right font-bold" id="total-venta">0.00€</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                <h2 class="text-lg font-medium mb-4">Notas Adicionales</h2>
+                {{ form.nota }}
+            </div>
+
+            <div class="flex justify-end space-x-4 mt-6">
+                <a href="{% url 'ventas:historial_ventas' %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para añadir/editar dispositivo -->
+<div id="modal-dispositivo" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg max-w-lg w-full p-6 modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900" id="modal-titulo">Añadir Dispositivo</h3>
+                <button type="button" onclick="cerrarModalDispositivo()" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="dispositivo-form" onsubmit="return false;">
+                <input type="hidden" id="dispositivo-id" name="dispositivo_id" value="">
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Dispositivo</label>
+                        {{ detalle_form.tipo_dispositivo }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Marca</label>
+                        {{ detalle_form.marca }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Modelo</label>
+                        {{ detalle_form.modelo }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Número de Serie</label>
+                        {{ detalle_form.numero_serie }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        {{ detalle_form.estado }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
+                        {{ detalle_form.precio }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+                        {{ detalle_form.nota }}
+                    </div>
+                </div>
+
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button type="button"
+                            onclick="submitDispositivoForm(event)"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        <span id="modal-action-button">Añadir</span>
+                    </button>
+                    <button type="button"
+                            onclick="cerrarModalDispositivo()"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    // Datos iniciales
+    const initialDispositivos = JSON.parse('{{ detalles_json|escapejs|default:"[]" }}');
+    const appUrls = {
+        verificarDni: '{% url "ventas:verificar_dni" %}',
+        historialVentas: '{% url "ventas:historial_ventas" %}',
+        editarDetalleVenta: '/ventas/editar-detalle',  // Cambiado
+        agregarDetalleVenta: '/ventas/agregar-detalle/',
+        eliminarDetalleVenta: '/ventas/eliminar-detalle/'
+    };
+
+    // Configurar objeto global
+    window.INITIAL_DATA = {
+        dispositivos: initialDispositivos,
+        urls: appUrls
+    };
+</script>
+
+<!-- Código principal -->
+<script>
+    // Variables globales
+    let dispositivos = window.INITIAL_DATA.dispositivos;
+    let totalVenta = 0;
+    let editandoDispositivoId = null;
+
+    // Cargar los dispositivos al inicio
+    window.addEventListener('DOMContentLoaded', () => {
+        actualizarTablaDispositivos();
+        setupModalListeners();
+    });
+
+    // Configurar listeners del modal
+    function setupModalListeners() {
+        const modal = document.getElementById('modal-dispositivo');
+        const modalContent = modal.querySelector('.modal-content');
+
+        // Evitar que clics dentro del modal lo cierren
+        modalContent.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Cerrar modal al hacer clic fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cerrarModalDispositivo();
+            }
+        });
+    }
+
+    function actualizarTotal() {
+        totalVenta = dispositivos.reduce((total, disp) => total + parseFloat(disp.precio), 0);
+        document.getElementById('total-venta').textContent = totalVenta.toFixed(2) + '€';
+    }
+
+    function mostrarFormularioDispositivo(dispositivoId = null, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        const modal = document.getElementById('modal-dispositivo');
+        const form = document.getElementById('dispositivo-form');
+        const titulo = document.getElementById('modal-titulo');
+        const actionButton = document.getElementById('modal-action-button');
+
+        editandoDispositivoId = dispositivoId;
+
+        if (dispositivoId) {
+            const dispositivo = dispositivos.find(d => d.id === dispositivoId);
+            titulo.textContent = 'Editar Dispositivo';
+            actionButton.textContent = 'Guardar Cambios';
+            
+            // Rellenar el formulario con los datos del dispositivo
+            Object.keys(dispositivo).forEach(key => {
+                const input = form.querySelector(`[name="${key}"]`);
+                if (input) {
+                    input.value = dispositivo[key];
+                }
+            });
+        } else {
+            titulo.textContent = 'Añadir Dispositivo';
+            actionButton.textContent = 'Añadir';
+            form.reset();
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function cerrarModalDispositivo() {
+        document.getElementById('modal-dispositivo').classList.add('hidden');
+        editandoDispositivoId = null;
+    }
+
+    async function eliminarDispositivo(dispositivoId, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        if (dispositivos.length <= 1) {
+            showMessage('No se puede eliminar el último dispositivo de la venta', 'error');
+            return;
+        }
+
+        if (confirm('¿Estás seguro de que deseas eliminar este dispositivo?')) {
+            try {
+                const response = await fetch(`${window.INITIAL_DATA.urls.eliminarDetalleVenta}${dispositivoId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                    }
+                });
+
+                if (response.ok) {
+                    dispositivos = dispositivos.filter(d => d.id !== dispositivoId);
+                    actualizarTablaDispositivos();
+                    showMessage('Dispositivo eliminado correctamente', 'success');
+                } else {
+                    throw new Error('Error al eliminar el dispositivo');
+                }
+            } catch (error) {
+                showMessage('Error al eliminar el dispositivo', 'error');
+            }
+        }
+    }
+
+    function actualizarTablaDispositivos() {
+        const tbody = document.getElementById('dispositivos-tbody');
+        tbody.innerHTML = '';
+        
+        dispositivos.forEach((dispositivo, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${dispositivo.marca} ${dispositivo.modelo}</div>
+                    <div class="text-sm text-gray-500">${dispositivo.tipo_dispositivo}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${dispositivo.numero_serie}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${dispositivo.estado === 'nuevo' ? 'bg-green-100 text-green-800' : 
+                        dispositivo.estado === 'usado' ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-blue-100 text-blue-800'}">
+                        ${dispositivo.estado}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    ${parseFloat(dispositivo.precio).toFixed(2)}€
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <button type="button" 
+                            onclick="mostrarFormularioDispositivo(${dispositivo.id}, event)" 
+                            class="text-indigo-600 hover:text-indigo-900">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button"
+                            onclick="eliminarDispositivo(${dispositivo.id}, event)"
+                            class="text-red-600 hover:text-red-900"
+                            ${dispositivos.length <= 1 ? 'disabled' : ''}>
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        actualizarTotal();
+    }
+
+    function submitDispositivoForm(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const form = document.getElementById('dispositivo-form');
+        const formData = new FormData(form);
+        
+        procesarDispositivoForm(formData);
+    }
+
+    async function procesarDispositivoForm(formData) {
+    try {
+        let url = editandoDispositivoId 
+        ? `${window.INITIAL_DATA.urls.editarDetalleVenta}/${editandoDispositivoId}/`
+        : window.INITIAL_DATA.urls.agregarDetalleVenta;
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (editandoDispositivoId) {
+                const index = dispositivos.findIndex(d => d.id === editandoDispositivoId);
+                dispositivos[index] = data.detalle;
+            } else {
+                dispositivos.push(data.detalle);
+            }
+            actualizarTablaDispositivos();
+            cerrarModalDispositivo();
+            showMessage(editandoDispositivoId ? 'Dispositivo actualizado correctamente' : 'Dispositivo añadido correctamente', 'success');
+        } else {
+            showMessage(data.message || 'Error al procesar el dispositivo', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showMessage('Error al procesar la solicitud', 'error');
+    }
+}
+
+    // Formulario principal
+    document.getElementById('ventaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (dispositivos.length === 0) {
+            showMessage('Debe haber al menos un dispositivo', 'error');
+            return;
+        }
+        
+        const formData = new FormData(this);
+        formData.append('dispositivos', JSON.stringify(dispositivos));
+        
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showMessage('Venta actualizada correctamente', 'success');
+                setTimeout(() => {
+                    window.location.href = window.INITIAL_DATA.urls.historialVentas;
+                }, 1500);
+            } else {
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        const input = this.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add('border-red-500');
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'text-red-500 text-sm mt-1';
+                            errorDiv.textContent = data.errors[field].join(', ');
+                            input.parentNode.appendChild(errorDiv);
+                        }
+                    });
+                }
+                showMessage(data.message || 'Error al actualizar la venta', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Error al procesar la solicitud', 'error');
+        }
+    });
+
+    // Verificación de DNI
+    document.querySelector('[name="dni"]').addEventListener('blur', async function() {
+        if (this.value) {
+            try {
+                const response = await fetch(`${window.INITIAL_DATA.urls.verificarDni}?dni=${this.value}`);
+                const data = await response.json();
+                
+                if (data.exists) {
+                    document.querySelector('[name="nombre_completo"]').value = data.data.nombre_completo;
+                    document.querySelector('[name="direccion"]').value = data.data.direccion;
+                    document.querySelector('[name="telefono"]').value = data.data.telefono;
+                }
+            } catch (error) {
+                console.error('Error verificando DNI:', error);
+            }
+        }
+    });
+</script>
+{% endblock %}
