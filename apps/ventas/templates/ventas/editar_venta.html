@@ -160,6 +160,7 @@
             </form>
         </div>
     </div>
+    {{ venta.id|json_script:"venta-id" }}
 </div>
 {% endblock %}
 
@@ -168,10 +169,11 @@
 <script>
     // Datos iniciales
     const initialDispositivos = JSON.parse('{{ detalles_json|escapejs|default:"[]" }}');
+    const ventaId = JSON.parse(document.getElementById('venta-id').textContent);
     const appUrls = {
         verificarDni: '{% url "ventas:verificar_dni" %}',
         historialVentas: '{% url "ventas:historial_ventas" %}',
-        editarDetalleVenta: '/ventas/editar-detalle',  // Cambiado
+        editarDetalleVenta: '/ventas/editar-detalle',
         agregarDetalleVenta: '/ventas/agregar-detalle/',
         eliminarDetalleVenta: '/ventas/eliminar-detalle/'
     };
@@ -179,10 +181,12 @@
     // Configurar objeto global
     window.INITIAL_DATA = {
         dispositivos: initialDispositivos,
-        urls: appUrls
+        urls: appUrls,
+        ventaId: ventaId
     };
 </script>
 
+<!-- Código principal -->
 <!-- Código principal -->
 <script>
     // Variables globales
@@ -201,12 +205,10 @@
         const modal = document.getElementById('modal-dispositivo');
         const modalContent = modal.querySelector('.modal-content');
 
-        // Evitar que clics dentro del modal lo cierren
         modalContent.addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
-        // Cerrar modal al hacer clic fuera
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 cerrarModalDispositivo();
@@ -230,24 +232,33 @@
         const titulo = document.getElementById('modal-titulo');
         const actionButton = document.getElementById('modal-action-button');
 
+        form.reset();
         editandoDispositivoId = dispositivoId;
 
         if (dispositivoId) {
             const dispositivo = dispositivos.find(d => d.id === dispositivoId);
-            titulo.textContent = 'Editar Dispositivo';
-            actionButton.textContent = 'Guardar Cambios';
-            
-            // Rellenar el formulario con los datos del dispositivo
-            Object.keys(dispositivo).forEach(key => {
-                const input = form.querySelector(`[name="${key}"]`);
-                if (input) {
-                    input.value = dispositivo[key];
-                }
-            });
+            if (dispositivo) {
+                titulo.textContent = 'Editar Dispositivo';
+                actionButton.textContent = 'Guardar Cambios';
+                
+                const fields = {
+                    'tipo_dispositivo': dispositivo.tipo_dispositivo,
+                    'marca': dispositivo.marca,
+                    'modelo': dispositivo.modelo,
+                    'numero_serie': dispositivo.numero_serie,
+                    'estado': dispositivo.estado,
+                    'precio': dispositivo.precio,
+                    'nota': dispositivo.nota || ''
+                };
+
+                Object.entries(fields).forEach(([key, value]) => {
+                    const input = form.querySelector(`[name="${key}"]`);
+                    if (input) input.value = value;
+                });
+            }
         } else {
             titulo.textContent = 'Añadir Dispositivo';
             actionButton.textContent = 'Añadir';
-            form.reset();
         }
 
         modal.classList.remove('hidden');
@@ -269,25 +280,101 @@
             return;
         }
 
-        if (confirm('¿Estás seguro de que deseas eliminar este dispositivo?')) {
-            try {
-                const response = await fetch(`${window.INITIAL_DATA.urls.eliminarDetalleVenta}${dispositivoId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCSRFToken(),
-                    }
-                });
+        if (!confirm('¿Estás seguro de que deseas eliminar este dispositivo?')) return;
 
-                if (response.ok) {
-                    dispositivos = dispositivos.filter(d => d.id !== dispositivoId);
-                    actualizarTablaDispositivos();
-                    showMessage('Dispositivo eliminado correctamente', 'success');
-                } else {
-                    throw new Error('Error al eliminar el dispositivo');
+        try {
+            const response = await fetch(`${window.INITIAL_DATA.urls.eliminarDetalleVenta}${dispositivoId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-            } catch (error) {
-                showMessage('Error al eliminar el dispositivo', 'error');
+            });
+
+            if (response.ok) {
+                dispositivos = dispositivos.filter(d => d.id !== dispositivoId);
+                actualizarTablaDispositivos();
+                showMessage('Dispositivo eliminado correctamente', 'success');
+            } else {
+                throw new Error('Error al eliminar el dispositivo');
             }
+        } catch (error) {
+            showMessage('Error al eliminar el dispositivo', 'error');
+        }
+    }
+
+    function submitDispositivoForm(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const form = document.getElementById('dispositivo-form');
+        const formData = new FormData(form);
+
+        // Validar campos requeridos
+        const requiredFields = ['tipo_dispositivo', 'marca', 'modelo', 'numero_serie', 'estado', 'precio'];
+        let isValid = true;
+        let errorMessage = '';
+
+        requiredFields.forEach(field => {
+            const value = formData.get(field);
+            if (!value || value.trim() === '') {
+                isValid = false;
+                errorMessage = `El campo ${field.replace('_', ' ')} es obligatorio`;
+            }
+        });
+
+        if (!isValid) {
+            showMessage(errorMessage, 'error');
+            return;
+        }
+
+        procesarDispositivoForm(formData);
+    }
+
+    async function procesarDispositivoForm(formData) {
+        try {
+            const precio = formData.get('precio');
+            if (isNaN(parseFloat(precio))) {
+                throw new Error('El precio debe ser un número válido');
+            }
+
+            if (!editandoDispositivoId) {
+                formData.append('venta_id', window.INITIAL_DATA.ventaId);
+            }
+
+            const url = editandoDispositivoId 
+                ? `${window.INITIAL_DATA.urls.editarDetalleVenta}/${editandoDispositivoId}/`
+                : window.INITIAL_DATA.urls.agregarDetalleVenta;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.message || 'Error al procesar el dispositivo');
+
+            if (editandoDispositivoId) {
+                const index = dispositivos.findIndex(d => d.id === editandoDispositivoId);
+                if (index !== -1) dispositivos[index] = data.detalle;
+            } else {
+                dispositivos.push(data.detalle);
+            }
+
+            actualizarTablaDispositivos();
+            cerrarModalDispositivo();
+            showMessage(
+                editandoDispositivoId ? 'Dispositivo actualizado correctamente' : 'Dispositivo añadido correctamente',
+                'success'
+            );
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage(error.message || 'Error al procesar la solicitud', 'error');
         }
     }
 
@@ -295,12 +382,16 @@
         const tbody = document.getElementById('dispositivos-tbody');
         tbody.innerHTML = '';
         
-        dispositivos.forEach((dispositivo, index) => {
+        dispositivos.forEach(dispositivo => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">${dispositivo.marca} ${dispositivo.modelo}</div>
-                    <div class="text-sm text-gray-500">${dispositivo.tipo_dispositivo}</div>
+                    <div class="text-sm font-medium text-gray-900">
+                        ${dispositivo.marca} ${dispositivo.modelo}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        ${dispositivo.tipo_dispositivo}
+                    </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${dispositivo.numero_serie}
@@ -336,53 +427,76 @@
         actualizarTotal();
     }
 
-    function submitDispositivoForm(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        const form = document.getElementById('dispositivo-form');
-        const formData = new FormData(form);
-        
-        procesarDispositivoForm(formData);
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
-    async function procesarDispositivoForm(formData) {
-    try {
-        let url = editandoDispositivoId 
-        ? `${window.INITIAL_DATA.urls.editarDetalleVenta}/${editandoDispositivoId}/`
-        : window.INITIAL_DATA.urls.agregarDetalleVenta;
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-            if (editandoDispositivoId) {
-                const index = dispositivos.findIndex(d => d.id === editandoDispositivoId);
-                dispositivos[index] = data.detalle;
-            } else {
-                dispositivos.push(data.detalle);
-            }
-            actualizarTablaDispositivos();
-            cerrarModalDispositivo();
-            showMessage(editandoDispositivoId ? 'Dispositivo actualizado correctamente' : 'Dispositivo añadido correctamente', 'success');
-        } else {
-            showMessage(data.message || 'Error al procesar el dispositivo', 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showMessage('Error al procesar la solicitud', 'error');
+    function showMessage(message, type = 'info') {
+    console.log(`${type}: ${message}`);
+    
+    // Crear el contenedor del mensaje si no existe
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+        `;
+        document.body.appendChild(container);
     }
+
+    // Crear el toast
+    const toast = document.createElement('div');
+    toast.className = `rounded-md p-4 mb-4 flex items-center justify-between max-w-md w-full shadow-lg 
+        ${type === 'success' ? 'bg-green-500' : 
+          type === 'error' ? 'bg-red-500' : 
+          'bg-blue-500'}`;
+
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <span class="text-white">${message}</span>
+        </div>
+    `;
+
+    // Añadir el toast al contenedor
+    container.appendChild(toast);
+
+    // Animación de entrada
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-20px)';
+    toast.style.transition = 'all 0.3s ease-in';
+    
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+    }, 100);
+
+    // Eliminar el toast después de 3 segundos
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            container.removeChild(toast);
+            if (container.children.length === 0) {
+                document.body.removeChild(container);
+            }
+        }, 300);
+    }, 3000);
 }
 
     // Formulario principal

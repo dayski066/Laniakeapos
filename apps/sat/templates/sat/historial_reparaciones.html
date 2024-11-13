@@ -181,7 +181,7 @@ function toggleDetalles(fila) {
 }
 
 function editarReparacion(id) {
-    window.location.href = `{% url 'sat:editar_reparacion' 999999 %}`.replace('999999', id);
+    window.location.href = `/sat/editar/${id}/`;
 }
 
 function eliminarReparacion(id) {

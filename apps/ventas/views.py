@@ -77,26 +77,61 @@ def nueva_venta(request):
         'detalle_form': detalle_form,
         'title': 'Nueva Venta'
     })
-
 @login_required
 def agregar_detalle_venta(request):
     if request.method == 'POST':
         form = DetalleVentaForm(request.POST)
         if form.is_valid():
-            detalle = form.save()
-            return JsonResponse({
-                'success': True,
-                'detalle': {
-                    'id': detalle.id,
-                    'tipo_dispositivo': detalle.get_tipo_dispositivo_display(),
-                    'marca': detalle.marca,
-                    'modelo': detalle.modelo,
-                    'numero_serie': detalle.numero_serie,
-                    'estado': detalle.get_estado_display(),
-                    'precio': str(detalle.precio)
-                }
-            })
-        return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+            try:
+                # Crear el detalle sin guardar primero
+                detalle = form.save(commit=False)
+                
+                # Si estamos editando, obtener la venta del detalle existente
+                if 'id' in request.POST and request.POST['id']:
+                    detalle_existente = DetalleVenta.objects.get(id=request.POST['id'])
+                    detalle.venta = detalle_existente.venta
+                else:
+                    # Si es nuevo, necesitamos la venta_id
+                    venta_id = request.POST.get('venta_id')
+                    if not venta_id:
+                        return JsonResponse({
+                            'success': False,
+                            'message': 'Se requiere venta_id para crear un nuevo detalle'
+                        }, status=400)
+                    
+                    detalle.venta_id = venta_id
+
+                # Ahora sí guardamos
+                detalle.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'detalle': {
+                        'id': detalle.id,
+                        'tipo_dispositivo': detalle.get_tipo_dispositivo_display(),
+                        'marca': detalle.marca,
+                        'modelo': detalle.modelo,
+                        'numero_serie': detalle.numero_serie,
+                        'estado': detalle.get_estado_display(),
+                        'precio': str(detalle.precio),
+                        'nota': detalle.nota if detalle.nota else ''
+                    }
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': str(e)
+                }, status=500)
+        
+        return JsonResponse({
+            'success': False,
+            'errors': form.errors
+        }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Método no permitido'
+    }, status=405)
 
 @login_required
 def eliminar_detalle_venta(request, detalle_id):
