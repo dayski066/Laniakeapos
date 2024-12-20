@@ -1,6 +1,6 @@
 # apps/ventas/models.py
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from apps.ajustes.models import Cliente
 
 class Venta(models.Model):
@@ -17,7 +17,20 @@ class Venta(models.Model):
     ]
 
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    usuario_registro = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='ventas_registradas'
+    )
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    usuario_modificacion = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='ventas_modificadas'
+    )
+    fecha_modificacion = models.DateTimeField(auto_now=True)
     fecha = models.DateTimeField(auto_now_add=True)
     nota = models.TextField(null=True, blank=True)
 

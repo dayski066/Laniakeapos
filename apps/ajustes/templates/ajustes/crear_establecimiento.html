@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Establecimiento{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-2xl font-bold text-gray-900">Crear Establecimiento</h1>
+                <p class="mt-2 text-sm text-gray-700">Rellena los campos para registrar un nuevo establecimiento.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'ajustes:crear_establecimiento' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <!-- Información Básica -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre *</label>
+                        <input type="text" id="nombre" name="nombre" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                               required>
+                    </div>
+                    <div class="flex-1">
+                        <label for="cif" class="block text-sm font-medium text-gray-700">CIF *</label>
+                        <input type="text" id="cif" name="cif" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                               required>
+                    </div>
+                </div>
+
+                <!-- Dirección -->
+                <div>
+                    <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección *</label>
+                    <textarea id="direccion" name="direccion" rows="3" 
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                              required></textarea>
+                </div>
+
+                <!-- Contacto -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono *</label>
+                        <input type="text" id="telefono" name="telefono" maxlength="15" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                               required>
+                    </div>
+                    <div class="flex-1">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" name="email" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Logo -->
+                <div>
+                    <label for="logo" class="block text-sm font-medium text-gray-700">Logo</label>
+                    <input type="file" id="logo" name="logo" accept="image/*"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Información Adicional -->
+                <div>
+                    <label for="horario" class="block text-sm font-medium text-gray-700">Horario</label>
+                    <textarea id="horario" name="horario" rows="3"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+
+                <div>
+                    <label for="terminos_condiciones" class="block text-sm font-medium text-gray-700">Términos y Condiciones</label>
+                    <textarea id="terminos_condiciones" name="terminos_condiciones" rows="3"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+
+                <div>
+                    <label for="politica_privacidad" class="block text-sm font-medium text-gray-700">Política de Privacidad</label>
+                    <textarea id="politica_privacidad" name="politica_privacidad" rows="3"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+
+                <div>
+                    <label for="redes_sociales" class="block text-sm font-medium text-gray-700">Redes Sociales</label>
+                    <textarea id="redes_sociales" name="redes_sociales" rows="3"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <a href="{% url 'ajustes:listar_establecimientos' %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Crear Establecimiento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

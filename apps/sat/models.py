@@ -1,31 +1,46 @@
 # apps/sat/models.py
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
-from apps.ajustes.models import Cliente
 from decimal import Decimal
-
+from apps.ajustes.models import Cliente
 class Reparacion(models.Model):
-  cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='reparaciones')
-  usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-  fecha = models.DateTimeField(auto_now_add=True)
-  precio = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-  
-  
-  ESTADO_CHOICES = [
-      ('pendiente', 'Pendiente'),
-      ('en_proceso', 'En Proceso'),
-      ('finalizado', 'Finalizado'),
-      ('entregado', 'Entregado'),
-  ]
-  estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    cliente = models.ForeignKey(
+        Cliente, on_delete=models.CASCADE, related_name="reparaciones"
+    )
+    usuario_registro = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='reparaciones_registradas'
+    )
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    usuario_modificacion = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='reparaciones_modificadas'
+    )
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    precio = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
 
-  class Meta:
-      ordering = ['-fecha']
-      verbose_name = 'Reparación'
-      verbose_name_plural = 'Reparaciones'
+    ESTADO_CHOICES = [
+        ("pendiente", "Pendiente"),
+        ("en_proceso", "En Proceso"),
+        ("finalizado", "Finalizado"),
+        ("entregado", "Entregado"),
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
 
-  def __str__(self):
-      return f"Reparación {self.id} - {self.cliente.nombre_completo}"
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Reparación'
+        verbose_name_plural = 'Reparaciones'
+
+    def __str__(self):
+        return f"Reparación {self.id} - {self.cliente.nombre_completo}"
 
 class DetalleReparacion(models.Model):
   reparacion = models.ForeignKey(Reparacion, on_delete=models.CASCADE, related_name='detalles')

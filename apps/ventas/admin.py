@@ -9,8 +9,8 @@ class DetalleVentaInline(admin.TabularInline):
 
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cliente', 'usuario', 'fecha', 'total')
-    list_filter = ('fecha', 'usuario')
+    list_display = ('id', 'cliente', 'usuario_registro', 'fecha', 'total')  # Cambiado 'usuario' por 'usuario_registro'
+    list_filter = ('fecha', 'usuario_registro')  # Cambiado 'usuario' por 'usuario_registro'
     search_fields = ('cliente__nombre_completo', 'cliente__dni', 'detalles__marca', 'detalles__modelo')
     inlines = [DetalleVentaInline]
     readonly_fields = ('fecha',)

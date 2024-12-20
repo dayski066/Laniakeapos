@@ -14,6 +14,7 @@ from .forms import VentaForm, DetalleVentaForm
 from .models import Venta, DetalleVenta
 from apps.ajustes.models import Cliente
 from django.conf import settings
+from django.db.models import Q
 
 @login_required
 def nueva_venta(request):
@@ -165,15 +166,30 @@ def verificar_dni(request):
 
 @login_required
 def historial_ventas(request):
-    ventas = Venta.objects.select_related('cliente').prefetch_related('detalles').all().order_by('-fecha')
+    ventas = Venta.objects.select_related('cliente').prefetch_related('detalles').all()
+    
+    # Búsqueda
+    query = request.GET.get('q', '')
+    if query:
+        ventas = ventas.filter(
+            Q(cliente__nombre_completo__icontains=query) |
+            Q(cliente__dni__icontains=query) |
+            Q(detalles__marca__icontains=query) |
+            Q(detalles__modelo__icontains=query) |
+            Q(detalles__numero_serie__icontains=query)
+        ).distinct()
+
+    # Mantener el ordenamiento por fecha
+    ventas = ventas.order_by('-fecha')
+
     # Añadir el total calculado a cada venta
     for venta in ventas:
         venta.total_calculado = sum(Decimal(str(detalle.precio)) for detalle in venta.detalles.all())
+
     return render(request, 'ventas/historial_ventas.html', {
         'ventas': ventas,
         'title': 'Historial de Ventas'
     })
-
 
 @login_required
 def generar_factura_pdf(request, venta_id):

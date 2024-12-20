@@ -14,6 +14,7 @@ from datetime import datetime
 from .forms import CompraForm
 from .models import Compra
 from apps.ajustes.models import Cliente
+from django.db.models import Q
 
 @login_required
 def nueva_compra(request):
@@ -169,7 +170,22 @@ def generar_contrato_pdf(request, compra_id):
 
 @login_required
 def historial_compras(request):
-    compras = Compra.objects.select_related('cliente').all().order_by('-fecha')
+    compras = Compra.objects.select_related('cliente').all()
+    
+    # Búsqueda
+    query = request.GET.get('q', '')
+    if query:
+        compras = compras.filter(
+            Q(cliente__nombre_completo__icontains=query) |
+            Q(cliente__dni__icontains=query) |
+            Q(marca__icontains=query) |
+            Q(modelo__icontains=query) |
+            Q(numero_serie__icontains=query)
+        ).distinct()
+
+    # Mantener el ordenamiento por fecha
+    compras = compras.order_by('-fecha')
+
     return render(request, 'compras/historial_compras.html', {
         'compras': compras,
         'title': 'Historial de Compras'

@@ -1,0 +1,56 @@
+<!-- inventario/templates/inventario/etiqueta_producto.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Etiqueta Producto</title>
+    <style>
+        @page {
+            size: 50mm 30mm;
+            margin: 2mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 8pt;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+        }
+        .etiqueta {
+            width: 46mm;
+            height: 26mm;
+        }
+        .producto-info {
+            margin-bottom: 2mm;
+        }
+        .nombre {
+            font-weight: bold;
+            font-size: 9pt;
+        }
+        .precio {
+            font-weight: bold;
+            font-size: 10pt;
+        }
+        .codigo-barras {
+            text-align: center;
+            margin-top: 2mm;
+        }
+        .codigo-texto {
+            text-align: center;
+            font-size: 7pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="etiqueta">
+        <div class="producto-info">
+            <div class="nombre">{{ producto.nombre }}</div>
+            <div class="precio">{{ producto.precio_venta }}€</div>
+        </div>
+        <div class="codigo-barras">
+            <img src="data:image/png;base64,{{ codigo_barras }}" alt="Código EAN">
+            <div class="codigo-texto">{{ producto.codigo_ean }}</div>
+        </div>
+    </div>
+</body>
+</html>

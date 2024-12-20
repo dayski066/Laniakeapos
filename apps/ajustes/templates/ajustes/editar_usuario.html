@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-2xl font-bold text-gray-900">Editar Usuario</h1>
+                <p class="mt-2 text-sm text-gray-700">Modifica los campos que desees actualizar.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'auth:editar_usuario' usuario.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <!-- Datos de acceso -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="username" class="block text-sm font-medium text-gray-700">Nombre de usuario *</label>
+                        <input type="text" id="username" name="username" value="{{ usuario.username }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                               required>
+                    </div>
+                </div>
+
+                <!-- Contraseñas -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="new_password" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
+                        <input type="password" id="new_password" name="new_password" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <p class="mt-1 text-sm text-gray-500">Dejar en blanco para mantener la contraseña actual</p>
+                    </div>
+                    <div class="flex-1">
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmar nueva contraseña</label>
+                        <input type="password" id="confirm_password" name="confirm_password" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Datos personales -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ usuario.first_name }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex-1">
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Apellidos</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ usuario.last_name }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Contacto -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" name="email" value="{{ usuario.email }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex-1">
+                        <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                        <input type="text" id="telefono" name="telefono" value="{{ usuario.telefono }}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Dirección -->
+                <div>
+                    <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+                    <textarea id="direccion" name="direccion" rows="3"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ usuario.direccion }}</textarea>
+                </div>
+
+                <!-- Foto -->
+                <div>
+                    <label for="foto" class="block text-sm font-medium text-gray-700">Foto</label>
+                    {% if usuario.foto %}
+                        <div class="mb-2">
+                            <img src="{{ usuario.foto.url }}" alt="Foto actual" class="h-20 w-auto">
+                            <p class="text-sm text-gray-500">Foto actual</p>
+                        </div>
+                    {% endif %}
+                    <input type="file" id="foto" name="foto" accept="image/*"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Rol y Estado -->
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="rol" class="block text-sm font-medium text-gray-700">Rol *</label>
+                        <select id="rol" name="rol" 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                                required>
+                            <option value="">Seleccione un rol</option>
+                            {% for rol in roles %}
+                                <option value="{{ rol.id }}" {% if usuario.rol_id == rol.id %}selected{% endif %}>
+                                    {{ rol.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Estado</label>
+                        <div class="mt-2">
+                            <input type="checkbox" id="is_active" name="is_active" 
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                   {% if usuario.is_active %}checked{% endif %}>
+                            <label for="is_active" class="ml-2 text-sm text-gray-700">Usuario activo</label>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <a href="{% url 'auth:listar_usuarios' %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Actualizar Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

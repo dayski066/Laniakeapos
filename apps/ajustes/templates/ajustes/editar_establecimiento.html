@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Establecimiento{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-2xl font-bold text-gray-900">Editar Establecimiento</h1>
+                <p class="mt-2 text-sm text-gray-700">Modifica los campos que desees actualizar.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'ajustes:editar_establecimiento' establecimiento.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" value="{{ establecimiento.nombre }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    <div class="flex-1">
+                        <label for="cif" class="block text-sm font-medium text-gray-700">CIF</label>
+                        <input type="text" id="cif" name="cif" value="{{ establecimiento.cif }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+                    <input type="text" id="direccion" name="direccion" value="{{ establecimiento.direccion }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                        <input type="text" id="telefono" name="telefono" value="{{ establecimiento.telefono }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" name="email" value="{{ establecimiento.email }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="logo" class="block text-sm font-medium text-gray-700">Logo</label>
+                    <input type="file" id="logo" name="logo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="horario" class="block text-sm font-medium text-gray-700">Horario</label>
+                        <input type="text" id="horario" name="horario" value="{{ establecimiento.horario }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label for="terminos_condiciones" class="block text-sm font-medium text-gray-700">Términos y Condiciones</label>
+                        <input type="text" id="terminos_condiciones" name="terminos_condiciones" value="{{ establecimiento.terminos_condiciones }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex-1">
+                        <label for="politica_privacidad" class="block text-sm font-medium text-gray-700">Política de Privacidad</label>
+                        <input type="text" id="politica_privacidad" name="politica_privacidad" value="{{ establecimiento.politica_privacidad }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div class="flex-1">
+                        <label for="redes_sociales" class="block text-sm font-medium text-gray-700">Redes Sociales</label>
+                        <input type="text" id="redes_sociales" name="redes_sociales" value="{{ establecimiento.redes_sociales }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md">
+                    Actualizar Establecimiento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

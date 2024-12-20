@@ -16,6 +16,7 @@ from apps.ajustes.models import Cliente
 from qrcode import QRCode
 import qrcode
 from datetime import datetime
+from django.db.models import Q
 
 @login_required
 def nueva_reparacion(request):
@@ -99,7 +100,22 @@ def verificar_dni(request):
 
 @login_required
 def historial_reparaciones(request):
-    reparaciones = Reparacion.objects.select_related('cliente').prefetch_related('detalles').all().order_by('-fecha')
+    reparaciones = Reparacion.objects.select_related('cliente').prefetch_related('detalles').all()
+    
+    # Búsqueda
+    query = request.GET.get('q', '')
+    if query:
+        reparaciones = reparaciones.filter(
+            Q(cliente__nombre_completo__icontains=query) |
+            Q(cliente__dni__icontains=query) |
+            Q(detalles__marca__icontains=query) |
+            Q(detalles__modelo__icontains=query) |
+            Q(detalles__numero_serie__icontains=query)
+        ).distinct()
+
+    # Mantener el ordenamiento por fecha
+    reparaciones = reparaciones.order_by('-fecha')
+
     return render(request, 'sat/historial_reparaciones.html', {
         'reparaciones': reparaciones,
         'title': 'Historial de Reparaciones'

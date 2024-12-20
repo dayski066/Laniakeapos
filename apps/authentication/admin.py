@@ -1,8 +1,7 @@
 # apps/authentication/admin.py
 from django.contrib import admin
-from .models import Profile
+from .models import User, Rol  # Cambiar Profile por los modelos que realmente tenemos
 
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'telefono', 'created_at')
-    search_fields = ('user__username', 'telefono')
+# Registrar los modelos
+admin.site.register(User)
+admin.site.register(Rol)

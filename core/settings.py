@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     
     # Aplicaciones propias
     'apps.authentication.apps.AuthenticationConfig',
@@ -34,6 +35,8 @@ INSTALLED_APPS = [
     'apps.inventario.apps.InventarioConfig',
     'apps.ajustes.apps.AjustesConfig',
 ]
+
+AUTH_USER_MODEL = 'authentication.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -117,9 +120,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'apps/static/uploads')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth settings
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
-LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'auth:home'
+LOGOUT_REDIRECT_URL = 'auth:login'
+LOGIN_URL = 'auth:login'
 
 # Jazzmin settings
 JAZZMIN_SETTINGS = {

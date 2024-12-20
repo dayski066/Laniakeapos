@@ -9,7 +9,7 @@
     <!-- Menú principal -->
     <nav class="sidebar-nav">
         <!-- Panel Principal -->
-        <a href="{% url 'home' %}" class="menu-item">
+        <a href="{% url 'auth:home' %}" class="menu-item">
             <svg class="menu-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -98,10 +98,10 @@
             </button>
             
             <div x-show="inventarioAbierto" class="submenu">
-                <a href="#" class="submenu-item">Nuevo Producto</a>
-                <a href="#" class="submenu-item">Gestión de Almacén</a>
+                <a href="{% url 'inventario:nuevo_producto' %}" class="submenu-item">Nuevo Producto</a>
+                <a href="{% url 'inventario:almacen' %}" class="submenu-item">Gestión de Almacén</a>
+                <a href="{% url 'inventario:gestion' %}" class="submenu-item">Gestión de Categorías/Distribuidores</a>
             </div>
-        </div>
 
         <!-- Ajustes -->
         <div class="menu-group" x-data="{ ajustesAbierto: false }">
@@ -119,8 +119,9 @@
             </button>
             
             <div x-show="ajustesAbierto" class="submenu">
-                <a href="#" class="submenu-item">Usuarios</a>
-                <a href="#" class="submenu-item">Establecimiento</a>
+                <a href="{% url 'auth:listar_usuarios' %}" class="submenu-item">Usuarios</a>
+                <a href="{% url 'auth:listar_roles' %}" class="submenu-item">Roles</a>
+                <a href="{% url 'ajustes:listar_establecimientos' %}" class="submenu-item">Establecimiento</a>
                 <a href="#" class="submenu-item">Formularios</a>
             </div>
         </div>
@@ -128,7 +129,7 @@
 
     <!-- Botón de Cerrar Sesión -->
     <div class="sidebar-footer">
-        <form method="post" action="{% url 'logout' %}">
+        <form method="post" action="{% url 'auth:logout' %}">
             {% csrf_token %}
             <button type="submit" class="logout-button">
                 <svg class="menu-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

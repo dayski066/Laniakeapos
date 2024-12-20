@@ -1,0 +1,358 @@
+<!-- inventario/templates/inventario/gestion.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Inventario{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Pestañas -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Navegación de pestañas -->
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button id="tab-categorias" 
+                        class="tab-btn active border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" 
+                        data-tab="categorias">
+                    Categorías
+                </button>
+                <button id="tab-distribuidores" 
+                        class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" 
+                        data-tab="distribuidores">
+                    Distribuidores
+                </button>
+            </nav>
+        </div>
+
+    <!-- Contenido Categorías -->
+    <div id="categorias-content" class="tab-content mt-6">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-xl font-semibold text-gray-900">Categorías</h1>
+                <p class="mt-2 text-sm text-gray-700">Gestiona las categorías de productos del inventario.</p>
+            </div>
+            <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                <button type="button" onclick="mostrarModalCategoria()" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
+                    Nueva Categoría
+                </button>
+            </div>
+        </div>
+        {% include 'inventario/tabla_categorias.html' %}
+    </div>
+
+    <!-- Contenido Distribuidores -->
+    <div id="distribuidores-content" class="tab-content mt-6 hidden">
+        <div class="sm:flex sm:items-center">
+            <div class="sm:flex-auto">
+                <h1 class="text-xl font-semibold text-gray-900">Distribuidores</h1>
+                <p class="mt-2 text-sm text-gray-700">Gestiona los distribuidores y sus datos.</p>
+            </div>
+            <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                <button type="button" onclick="mostrarModalDistribuidor()" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
+                    Nuevo Distribuidor
+                </button>
+            </div>
+        </div>
+        {% include 'inventario/tabla_distribuidores.html' %}
+    </div>
+</div>
+
+{% include 'inventario/modal_categoria.html' %}
+{% include 'inventario/modal_distribuidor.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Funciones de utilidad
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showMessage(message, type = 'success') {
+        // Puedes usar la misma función de mensajes que usas en el resto de la aplicación
+        alert(message);
+    }
+
+    // Funciones para Categorías
+    function mostrarModalCategoria(id = null, nombre = '') {
+        const modal = document.getElementById('modal-categoria');
+        const form = document.getElementById('categoria-form');
+        const titulo = document.getElementById('modal-categoria-titulo');
+
+        // Limpiar errores previos
+        form.querySelectorAll('.error-message').forEach(error => {
+            error.textContent = '';
+            error.classList.add('hidden');
+        });
+
+        if (id) {
+            titulo.textContent = 'Editar Categoría';
+            document.getElementById('categoria-id').value = id;
+            document.getElementById('categoria-nombre').value = nombre;
+        } else {
+            titulo.textContent = 'Nueva Categoría';
+            document.getElementById('categoria-id').value = '';
+            document.getElementById('categoria-nombre').value = '';
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function cerrarModalCategoria() {
+        document.getElementById('modal-categoria').classList.add('hidden');
+        document.getElementById('categoria-form').reset();
+    }
+
+    async function guardarCategoria(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const id = formData.get('id');
+        
+        try {
+            const url = id 
+                ? `/inventario/categoria/${id}/editar/` 
+                : '/inventario/categoria/agregar/';
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showMessage(data.message, 'success');
+                cerrarModalCategoria();
+                window.location.reload(); // Recargar para ver los cambios
+            } else {
+                // Mostrar errores
+                Object.entries(data.errors).forEach(([field, errors]) => {
+                    const errorDiv = form.querySelector(`[name="${field}"]`)
+                        .nextElementSibling;
+                    errorDiv.textContent = errors.join(', ');
+                    errorDiv.classList.remove('hidden');
+                });
+            }
+        } catch (error) {
+            showMessage('Error al guardar la categoría', 'error');
+        }
+    }
+
+    function editarCategoria(id, nombre) {
+        mostrarModalCategoria(id, nombre);
+    }
+
+    async function eliminarCategoria(id) {
+        if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/inventario/categoria/${id}/eliminar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showMessage('Categoría eliminada correctamente', 'success');
+                window.location.reload();
+            } else {
+                showMessage(data.message || 'Error al eliminar la categoría', 'error');
+            }
+        } catch (error) {
+            showMessage('Error al eliminar la categoría', 'error');
+        }
+    }
+
+    // Funciones para Distribuidores
+    function mostrarModalDistribuidor(id = null, datos = null) {
+        const modal = document.getElementById('modal-distribuidor');
+        const form = document.getElementById('distribuidor-form');
+        const titulo = document.getElementById('modal-distribuidor-titulo');
+
+        // Limpiar errores previos
+        form.querySelectorAll('.error-message').forEach(error => {
+            error.textContent = '';
+            error.classList.add('hidden');
+        });
+
+        if (id && datos) {
+            titulo.textContent = 'Editar Distribuidor';
+            document.getElementById('distribuidor-id').value = id;
+            document.getElementById('distribuidor-nombre').value = datos.nombre;
+            document.getElementById('distribuidor-cif').value = datos.cif;
+            document.getElementById('distribuidor-telefono').value = datos.telefono;
+            document.getElementById('distribuidor-direccion').value = datos.direccion;
+        } else {
+            titulo.textContent = 'Nuevo Distribuidor';
+            document.getElementById('distribuidor-id').value = '';
+            form.reset();
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function cerrarModalDistribuidor() {
+        document.getElementById('modal-distribuidor').classList.add('hidden');
+        document.getElementById('distribuidor-form').reset();
+    }
+
+    async function guardarDistribuidor(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const id = formData.get('id');
+        
+        try {
+            const url = id 
+                ? `/inventario/distribuidor/${id}/editar/` 
+                : '/inventario/distribuidor/agregar/';
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showMessage(data.message, 'success');
+                cerrarModalDistribuidor();
+                window.location.reload();
+            } else {
+                Object.entries(data.errors).forEach(([field, errors]) => {
+                    const errorDiv = form.querySelector(`[name="${field}"]`)
+                        .nextElementSibling;
+                    errorDiv.textContent = errors.join(', ');
+                    errorDiv.classList.remove('hidden');
+                });
+            }
+        } catch (error) {
+            showMessage('Error al guardar el distribuidor', 'error');
+        }
+    }
+
+    function editarDistribuidor(id, nombre, cif, telefono, direccion) {
+        mostrarModalDistribuidor(id, {
+            nombre: nombre,
+            cif: cif,
+            telefono: telefono,
+            direccion: direccion
+        });
+    }
+
+    async function eliminarDistribuidor(id) {
+        if (!confirm('¿Estás seguro de que deseas eliminar este distribuidor?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/inventario/distribuidor/${id}/eliminar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showMessage('Distribuidor eliminado correctamente', 'success');
+                window.location.reload();
+            } else {
+                showMessage(data.message || 'Error al eliminar el distribuidor', 'error');
+            }
+        } catch (error) {
+            showMessage('Error al eliminar el distribuidor', 'error');
+        }
+    }
+
+    // Buscadores
+    document.getElementById('buscar-categoria').addEventListener('input', function(e) {
+        const busqueda = e.target.value.toLowerCase();
+        const filas = document.querySelectorAll('#categorias-content tbody tr');
+        
+        filas.forEach(fila => {
+            const texto = fila.textContent.toLowerCase();
+            fila.style.display = texto.includes(busqueda) ? '' : 'none';
+        });
+    });
+
+    // Manejo de pestañas
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    function cambiarTab(tabId) {
+        // Ocultar todos los contenidos
+        tabContents.forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        // Remover active de todos los botones
+        tabButtons.forEach(btn => {
+            btn.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
+            btn.classList.add('border-transparent', 'text-gray-500');
+        });
+
+        // Mostrar el contenido seleccionado
+        const contenidoSeleccionado = document.getElementById(`${tabId}-content`);
+        if (contenidoSeleccionado) {
+            contenidoSeleccionado.classList.remove('hidden');
+        }
+
+        // Activar el botón seleccionado
+        const botonSeleccionado = document.querySelector(`[data-tab="${tabId}"]`);
+        if (botonSeleccionado) {
+            botonSeleccionado.classList.remove('border-transparent', 'text-gray-500');
+            botonSeleccionado.classList.add('active', 'border-indigo-500', 'text-indigo-600');
+        }
+    }
+
+    // Agregar event listeners a los botones
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabId = button.getAttribute('data-tab');
+            cambiarTab(tabId);
+        });
+    });
+});
+
+    document.getElementById('buscar-distribuidor').addEventListener('input', function(e) {
+        const busqueda = e.target.value.toLowerCase();
+        const filas = document.querySelectorAll('#distribuidores-content tbody tr');
+        
+        filas.forEach(fila => {
+            const texto = fila.textContent.toLowerCase();
+            fila.style.display = texto.includes(busqueda) ? '' : 'none';
+        });
+    });
+
+    // Manejo de pestañas (ya incluido en el template principal)
+</script>
+{% endblock %}

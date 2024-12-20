@@ -1,20 +1,32 @@
 # apps/ajustes/models.py
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 class Establecimiento(models.Model):
     nombre = models.CharField(max_length=200)
     cif = models.CharField(max_length=20, unique=True)
     direccion = models.TextField()
     telefono = models.CharField(max_length=15)
-    email = models.EmailField()
-    logo = models.ImageField(upload_to='establecimiento/', null=True, blank=True)
-    horario = models.TextField()
-    terminos_condiciones = models.TextField()
-    politica_privacidad = models.TextField()
-    redes_sociales = models.TextField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)  # Opcional
+    logo = models.ImageField(upload_to='establecimiento/', blank=True, null=True)  # Opcional
+    horario = models.TextField(blank=True, null=True)  # Opcional
+    terminos_condiciones = models.TextField(blank=True, null=True)  # Opcional
+    politica_privacidad = models.TextField(blank=True, null=True)  # Opcional
+    redes_sociales = models.TextField(blank=True, null=True)  # Opcional
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    usuario_registro = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='establecimientos_registrados'
+    )
+    usuario_modificacion = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='establecimientos_modificados'
+    )
 
     class Meta:
         verbose_name = 'Establecimiento'
@@ -22,6 +34,7 @@ class Establecimiento(models.Model):
 
     def __str__(self):
         return self.nombre
+
 
 class Cliente(models.Model):
     nombre_completo = models.CharField(max_length=200, null=False, blank=False)
@@ -31,6 +44,18 @@ class Cliente(models.Model):
     email = models.EmailField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    usuario_registro = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='clientes_registrados'
+    )
+    usuario_modificacion = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='clientes_modificados'
+    )
 
     class Meta:
         verbose_name = 'Cliente'
@@ -39,6 +64,7 @@ class Cliente(models.Model):
 
     def __str__(self):
         return f"{self.nombre_completo} - {self.dni}"
+
 
 class Notificacion(models.Model):
     TIPO_CHOICES = [
@@ -53,7 +79,18 @@ class Notificacion(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='info')
     leida = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    usuario_registro = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='notificaciones_registradas'
+    )
+    usuario_modificacion = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='notificaciones_modificadas'
+    )
 
     class Meta:
         verbose_name = 'Notificación'
@@ -61,4 +98,4 @@ class Notificacion(models.Model):
         ordering = ['-fecha']
 
     def __str__(self):
-        return f'{self.titulo} - {self.usuario}'
+        return f'{self.titulo} - {self.usuario_registro}'

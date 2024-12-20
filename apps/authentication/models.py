@@ -1,17 +1,37 @@
-# apps/authentication/models.py
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.models import User
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    imagen = models.ImageField(upload_to='profiles/', null=True, blank=True)
-    telefono = models.CharField(max_length=15, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Rol(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name = 'Perfil'
-        verbose_name_plural = 'Perfiles'
+        db_table = 'auth_rol'
+        verbose_name = 'Rol'
+        verbose_name_plural = 'Roles'
 
     def __str__(self):
-        return f'Perfil de {self.user.username}'
+        return self.nombre
+
+class User(AbstractUser):
+    foto = models.ImageField(
+        upload_to='usuarios/fotos/', 
+        null=True, 
+        blank=True,
+        verbose_name='Foto de perfil'
+    )
+    rol = models.ForeignKey(
+        Rol, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        db_column='rol_id',
+        verbose_name='Rol'
+    )
+
+    telefono = models.CharField(max_length=15, null=True, blank=True)
+    direccion = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'auth_user'
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'

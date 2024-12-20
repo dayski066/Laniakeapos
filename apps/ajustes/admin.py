@@ -15,6 +15,7 @@ class ClienteAdmin(admin.ModelAdmin):
 
 @admin.register(Notificacion)
 class NotificacionAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'tipo', 'usuario', 'leida', 'fecha')
-    list_filter = ('tipo', 'leida', 'fecha')
-    search_fields = ('titulo', 'mensaje')
+    list_display = ['titulo', 'fecha', 'usuario_registro', 'tipo', 'leida']  # Cambiado 'usuario' por 'usuario_registro'
+    list_filter = ['tipo', 'leida']
+    search_fields = ['titulo', 'mensaje']
+
