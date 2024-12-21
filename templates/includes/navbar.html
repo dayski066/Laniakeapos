@@ -3,24 +3,28 @@
 <div class="bg-white h-16 shadow-sm fixed top-0 right-0 left-64 z-10">
     <div class="flex items-center justify-between h-full px-6">
         <!-- Título/Breadcrumb -->
-        <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-gray-800">
-                {% block page_title %}Dashboard{% endblock %}
-            </h1>
-        </div>
+<div class="flex items-center">
+    <h1 class="text-xl font-semibold text-gray-800">
+        {% if request.user.establecimiento %}
+            {{ request.user.establecimiento.nombre }}
+        {% else %}
+            Sin establecimiento asignado
+        {% endif %}
+    </h1>
+</div>
 
         <!-- Sección derecha -->
         <div class="flex items-center space-x-4">
             <!-- Barra de búsqueda -->
             <div class="hidden md:block">
                 <div class="relative">
-                    <input type="text" 
-                           class="w-64 pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
-                           placeholder="Buscar...">
+                    <input type="text"
+                        class="w-64 pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
+                        placeholder="Buscar...">
                     <div class="absolute left-3 top-2.5 text-gray-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                 </div>
@@ -29,21 +33,21 @@
             <!-- Notificaciones -->
             <div class="relative" x-data="{ notificacionesAbiertas: false }">
                 <button @click="notificacionesAbiertas = !notificacionesAbiertas"
-                        class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative">
+                    class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     <!-- Indicador de notificaciones -->
-                    <span class="absolute top-0 right-0 h-5 w-5 flex items-center justify-center bg-red-500 text-white text-xs rounded-full">
+                    <span
+                        class="absolute top-0 right-0 h-5 w-5 flex items-center justify-center bg-red-500 text-white text-xs rounded-full">
                         3
                     </span>
                 </button>
 
                 <!-- Panel de notificaciones -->
-                <div x-show="notificacionesAbiertas" 
-                     @click.away="notificacionesAbiertas = false"
-                     class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-1 z-50">
+                <div x-show="notificacionesAbiertas" @click.away="notificacionesAbiertas = false"
+                    class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-1 z-50">
                     <!-- Encabezado -->
                     <div class="px-4 py-2 border-b border-gray-200">
                         <div class="flex items-center justify-between">
@@ -60,9 +64,10 @@
                         <a href="#" class="block px-4 py-3 hover:bg-gray-50 bg-blue-50">
                             <div class="flex">
                                 <div class="flex-shrink-0">
-                                    <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div class="ml-3">
@@ -76,9 +81,10 @@
                         <a href="#" class="block px-4 py-3 hover:bg-gray-50">
                             <div class="flex">
                                 <div class="flex-shrink-0">
-                                    <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                    <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                     </svg>
                                 </div>
                                 <div class="ml-3">
@@ -101,24 +107,41 @@
             <!-- Perfil de usuario -->
             <div class="relative" x-data="{ perfilAbierto: false }">
                 <button @click="perfilAbierto = !perfilAbierto"
-                        class="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg">
-                    <img class="h-8 w-8 rounded-full object-cover" 
-                         src="{% static 'img/default-avatar.png' %}" 
-                         alt="Avatar">
+                    class="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg">
+                    {% if request.user.foto %}
+                    <img class="h-8 w-8 rounded-full object-cover" src="{{ request.user.foto.url }}"
+                        alt="Avatar de {{ request.user.get_full_name }}">
+                    {% else %}
+                    <img class="h-8 w-8 rounded-full object-cover" src="{% static 'img/default-avatar.png' %}"
+                        alt="Avatar por defecto">
+                    {% endif %}
                     <div class="hidden md:block text-left">
-                        <span class="text-sm font-medium text-gray-700">{{ request.user.username }}</span>
-                        <p class="text-xs text-gray-500">Administrador</p>
+                        <span class="text-sm font-medium text-gray-700">
+                            {% if request.user.get_full_name %}
+                            {{ request.user.get_full_name }}
+                            {% else %}
+                            {{ request.user.username }}
+                            {% endif %}
+                        </span>
+                        <p class="text-xs text-gray-500">
+                            {{ request.user.rol.nombre|default:"Sin rol asignado" }}
+                        </p>
                     </div>
                     <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
 
                 <!-- Menú desplegable del perfil -->
-                <div x-show="perfilAbierto" 
-                     @click.away="perfilAbierto = false"
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <div x-show="perfilAbierto" @click.away="perfilAbierto = false"
+                    class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                    <div class="px-4 py-2 border-b border-gray-200">
+                        <p class="text-sm font-medium text-gray-900">
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </p>
+                        <p class="text-xs text-gray-500">{{ request.user.email|default:"" }}</p>
+                    </div>
+                    <a href="{% url 'auth:listar_usuarios' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         <div class="flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 

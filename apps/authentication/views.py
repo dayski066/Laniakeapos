@@ -10,6 +10,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.urls import reverse
+from apps.ajustes.models import Establecimiento
 
 User = get_user_model()
 
@@ -28,7 +29,6 @@ def crear_usuario(request):
             usuario = form.save(commit=False)
             usuario.usuario_registro = request.user
             usuario.save()
-            # Usamos messages y redirect que sabemos que funciona
             messages.success(request, 'Usuario creado correctamente')
             return redirect('auth:listar_usuarios')
         else:
@@ -36,16 +36,19 @@ def crear_usuario(request):
     else:
         form = UserForm()
 
+    establecimientos = Establecimiento.objects.all().order_by('nombre')
     roles = Rol.objects.all()
     return render(request, 'ajustes/crear_usuario.html', {
         'form': form,
-        'roles': roles
+        'roles': roles,
+        'establecimientos': establecimientos
     })
 
 @login_required
 def editar_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
-    roles = Rol.objects.all()  # Obtenemos todos los roles
+    roles = Rol.objects.all()
+    establecimientos = Establecimiento.objects.all().order_by('nombre')
 
     if request.method == 'POST':
         form = UserEditForm(request.POST, request.FILES, instance=usuario)
@@ -57,6 +60,11 @@ def editar_usuario(request, pk):
             nuevo_rol_id = request.POST.get('rol')
             if nuevo_rol_id:
                 usuario.rol_id = nuevo_rol_id
+
+            # Manejamos el establecimiento
+            nuevo_establecimiento_id = request.POST.get('establecimiento')
+            if nuevo_establecimiento_id:
+                usuario.establecimiento_id = nuevo_establecimiento_id
 
             # Manejo de la contraseña
             nueva_password = request.POST.get('new_password')
@@ -73,7 +81,8 @@ def editar_usuario(request, pk):
     return render(request, 'ajustes/editar_usuario.html', {
         'form': form,
         'usuario': usuario,
-        'roles': roles  # Pasamos los roles a la plantilla
+        'roles': roles,
+        'establecimientos': establecimientos
     })
 
 @login_required
@@ -117,7 +126,9 @@ def crear_rol(request):
     if request.method == 'POST':
         form = RolForm(request.POST)
         if form.is_valid():
-            form.save()
+            rol = form.save(commit=False)
+            rol.usuario_registro = request.user
+            rol.save()
             messages.success(request, 'Rol creado correctamente')
             return redirect('auth:listar_roles')
         else:
@@ -135,7 +146,9 @@ def editar_rol(request, pk):
     if request.method == 'POST':
         form = RolForm(request.POST, instance=rol)
         if form.is_valid():
-            form.save()
+            rol = form.save(commit=False)
+            rol.usuario_modificacion = request.user
+            rol.save()
             messages.success(request, 'Rol actualizado correctamente')
             return redirect('auth:listar_roles')
         else:

@@ -10,8 +10,18 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'telefono', 
-                 'direccion', 'foto', 'rol', 'is_active']
+        fields = [
+            'username', 
+            'first_name', 
+            'last_name', 
+            'email', 
+            'telefono', 
+            'direccion', 
+            'foto', 
+            'rol', 
+            'establecimiento',  # Añadimos este campo
+            'is_active'
+        ]
         widgets = {
             'direccion': forms.Textarea(attrs={'rows': 3}),
         }

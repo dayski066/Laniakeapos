@@ -103,6 +103,21 @@
                             {% endfor %}
                         </select>
                     </div>
+
+                    <div class="flex-1">
+                        <label for="establecimiento" class="block text-sm font-medium text-gray-700">Establecimiento *</label>
+                        <select id="establecimiento" name="establecimiento" 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                                required>
+                            <option value="">Seleccione un establecimiento</option>
+                            {% for establecimiento in establecimientos %}
+                                <option value="{{ establecimiento.id }}" {% if usuario.establecimiento_id == establecimiento.id %}selected{% endif %}>
+                                    {{ establecimiento.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="flex-1">
                         <label class="block text-sm font-medium text-gray-700">Estado</label>
                         <div class="mt-2">

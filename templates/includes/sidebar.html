@@ -2,8 +2,22 @@
 <div class="sidebar-container">
     <!-- Logo y título -->
     <div class="sidebar-header">
-        <img src="{% static 'assets/img/logo.png' %}" alt="LANIAKEAPOS" class="sidebar-logo">
-        <h1 class="sidebar-title">LANIAKEAPOS</h1>
+        {% if request.user.establecimiento and request.user.establecimiento.logo %}
+            <img src="{{ request.user.establecimiento.logo.url }}" 
+                 alt="{{ request.user.establecimiento.nombre }}" 
+                 class="sidebar-logo">
+        {% else %}
+            <img src="{% static 'assets/img/logo.png' %}" 
+                 alt="LANIAKEAPOS" 
+                 class="sidebar-logo">
+        {% endif %}
+        <h1 class="sidebar-title">
+            {% if request.user.establecimiento %}
+                {{ request.user.establecimiento.nombre }}
+            {% else %}
+                LANIAKEAPOS
+            {% endif %}
+        </h1>
     </div>
 
     <!-- Menú principal -->
